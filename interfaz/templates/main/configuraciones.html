@@ -1,0 +1,76 @@
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block title %}Configuraciones | RadProc{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/config.css' %}">
+{% endblock %}
+
+{% block content %}
+<section class="ventana-config">
+  <h2 class="mb-4">Configuraciones</h2>
+
+  {% if mensaje %}
+    <div class="alert alert-info">{{ mensaje }}</div>
+  {% endif %}
+
+  <form action="/guardar_config/" method="post" id="form-config">
+    {% csrf_token %}
+
+    <!-- === Tipo de configuración === -->
+    <div class="mb-3">
+      <label for="tipo-config" class="form-label">Tipo configuración:</label>
+      <select id="tipo-config" name="tipo" class="form-select {{ tipo_seleccionado }}">
+        {% for opcion in opciones_tipo %}
+          <option value="{{ opcion.valor }}"
+                  {% if opcion.valor == tipo_seleccionado %}selected{% endif %}
+                  {% if opcion.disabled %}disabled class="text-muted"{% endif %}>
+            {{ opcion.etiqueta }}{% if opcion.disabled %} (bloqueado){% endif %}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <!-- === Tabla de parámetros editables === -->
+    <div class="table-responsive mb-3">
+      <table class="table table-bordered">
+        <thead class="table-light">
+          <tr>
+            <th>Parámetro</th>
+            <th>Valor</th>
+          </tr>
+        </thead>
+        <tbody id="tabla-parametros">
+          <tr>
+            <td><label for="spectrum">spectrum</label></td>
+            <td><input type="number" class="form-control" name="spectrum" id="spectrum" value="{{ config.spectrum }}"></td>
+          </tr>
+          <tr>
+            <td><label for="meas_order">meas_order</label></td>
+            <td><input type="text" class="form-control" name="meas_order" id="meas_order" value='{{ config.meas_order }}'></td>
+          </tr>
+          <tr>
+            <td><label for="target_list">target_list</label></td>
+            <td><input type="text" class="form-control" name="target_list" id="target_list" value='{{ config.target_list }}'></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- === Botones === -->
+    <div class="d-flex justify-content-end gap-2">
+      <button id="guardar-btn" type="submit" class="btn btn-primary">Guardar</button>
+      <a href="/" class="btn btn-secondary">Cerrar</a>
+    </div>
+  </form>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/config.js' %}"></script>
+{% endblock %}
+
+
+
+

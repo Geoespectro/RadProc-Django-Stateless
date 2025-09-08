@@ -1,0 +1,40 @@
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block title %}Editar Spectralon{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/config.css' %}">
+<style>
+  textarea.editor {
+    width: 100%;
+    height: 500px;
+    font-family: monospace;
+    white-space: pre;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="ventana-config">
+  <h2 class="mb-3">Editor archivo Spectralon</h2>
+
+  <div class="alert alert-warning">
+    ⚠️ Este archivo es sensible. Modificarlo puede afectar el procesamiento de reflectancias. Realice cambios solo si está seguro.
+  </div>
+
+  <form action="{% url 'guardar_spectralon' %}" method="post">
+    {% csrf_token %}
+    <div class="mb-3">
+      <textarea name="contenido_txt" class="form-control editor">{{ contenido_txt }}</textarea>
+    </div>
+
+    <div class="d-flex justify-content-end gap-2">
+      <button type="submit" class="btn btn-primary">Guardar cambios</button>
+      <a href="{% url 'configuraciones' %}?tipo={{ tipo_actual }}" class="btn btn-secondary">Cancelar</a>
+    </div>
+  </form>
+</section>
+{% endblock %}
+
+

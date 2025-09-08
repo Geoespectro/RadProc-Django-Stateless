@@ -1,0 +1,153 @@
+/* ==========================================
+   base.css – Estilos comunes globales
+   ------------------------------------------
+   Se carga desde base.html y aplica a todas las páginas.
+   ========================================== */
+
+/* === TIPOGRAFÍA Y COLOR GLOBAL === */
+body {
+  font-family: "Segoe UI", sans-serif;
+  background-color: #eaf6fc;      /* Color base modo claro */
+  color: #002b40;                  /* Texto oscuro por defecto */
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* === MODO OSCURO === */
+.modo-oscuro {
+  background-color: #1e1e1e;
+  color: #f5f5f5;
+}
+
+/* Navbar y footer en modo oscuro */
+.modo-oscuro .navbar,
+.modo-oscuro footer {
+  background-color: #121212 !important;
+}
+
+/* Formularios en modo oscuro */
+.modo-oscuro .form-control,
+.modo-oscuro .form-select {
+  background-color: #2a2a2a;
+  color: #ffffff;
+  border-color: #444;
+}
+
+/* Placeholder en formularios oscuros */
+.modo-oscuro ::placeholder {
+  color: #aaa;
+}
+
+/* === NAVBAR === */
+.navbar-brand span {
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+/* === FOOTER === */
+footer {
+  margin-top: auto;
+  font-size: 0.9rem;
+}
+
+/* === SELECTORES PERSONALIZADOS === */
+/* Estilo según tipo de medición */
+select.form-select.agua {
+  background-color: #ccefff;
+  border-color: #00aaff;
+  color: #003344;
+}
+
+/* Opciones desplegables NO heredarán el color de la caja */
+select.form-select.agua option {
+  background-color: #fff !important;
+  color: #003344;
+}
+
+select.form-select.suelo {
+  background-color: #d6f5d6;
+  border-color: #66cc66;
+  color: #003300;
+}
+
+select.form-select.suelo option {
+  background-color: #fff !important;
+  color: #003300;
+}
+
+select.form-select.spectralon {
+  background-color: #fff4b2;
+  border-color: #e6b800;
+  color: #665200;
+}
+
+select.form-select.spectralon option {
+  background-color: #fff !important;
+  color: #665200;
+}
+
+
+/* === UTILS (utilidades generales) === */
+.text-center {
+  text-align: center;
+}
+
+.text-end {
+  text-align: end;
+}
+
+.w-100 {
+  width: 100%;
+}
+
+/* === BOTONES === */
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* === MODO OSCURO: ENLACES, BORDES Y BOTONES (extensiones futuras) === */
+.modo-oscuro a {
+  color: #80cfff;
+}
+
+.modo-oscuro .btn {
+  border-color: #555;
+}
+
+.modo-oscuro .btn-outline-primary {
+  color: #80cfff;
+  border-color: #80cfff;
+}
+
+.modo-oscuro .btn-outline-primary:hover {
+  background-color: #80cfff;
+  color: #000;
+}
+
+/* === Mensaje a configuraciones === */
+
+.toast-container-fixed {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+}
+
+.toast-aviso {
+  background-color: #ffc107;
+  color: #000;
+  padding: 10px 16px;
+  border-radius: 4px;
+  margin-bottom: 8px;
+  font-weight: bold;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  transition: opacity 1s ease-out;
+}
+
+.toast-aviso.fade-out {
+  opacity: 0;
+}

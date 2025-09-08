@@ -1,0 +1,23 @@
+{% extends 'main/base.html' %}
+
+{% block title %}Clave Spectralon{% endblock %}
+
+{% block content %}
+<div class="ventana-config">
+  <h2 class="mb-4">🔒 Ingreso seguro - Editor Spectralon</h2>
+
+  {% if error %}
+    <div class="alert alert-danger">{{ error }}</div>
+  {% endif %}
+
+  <form method="post">
+    {% csrf_token %}
+    <div class="mb-3">
+      <label for="clave" class="form-label">Ingrese la clave:</label>
+      <input type="password" name="clave" id="clave" class="form-control" required>
+    </div>
+    <button type="submit" class="btn btn-primary">Acceder</button>
+    <a href="{% url 'configuraciones' %}?tipo={{ tipo_actual }}" class="btn btn-secondary">Cancelar</a>
+  </form>
+</div>
+{% endblock %}

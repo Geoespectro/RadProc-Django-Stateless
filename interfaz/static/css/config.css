@@ -1,0 +1,111 @@
+/* ==========================================
+   config.css – Estilos para configuraciones.html
+   ========================================== */
+
+/* === CONTENEDOR PRINCIPAL === */
+.ventana-config {
+  background-color: #f6fbff;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 100, 150, 0.1);
+  max-width: 800px;
+  margin: auto;
+}
+
+/* === SELECT DE TIPO === */
+#tipo-config {
+  transition: all 0.3s ease;
+}
+
+/* Colores dinámicos según tipo seleccionado */
+select.form-select.agua {
+  background-color: #ccefff;
+  border-color: #00aaff;
+  color: #003344;
+}
+
+/* Opciones desplegables NO heredarán el color de la caja */
+select.form-select.agua option {
+  background-color: #fff !important;
+  color: #003344;
+}
+
+select.form-select.suelo {
+  background-color: #d6f5d6;
+  border-color: #66cc66;
+  color: #003300;
+}
+
+select.form-select.suelo option {
+  background-color: #fff !important;
+  color: #003300;
+}
+
+select.form-select.spectralon {
+  background-color: #fff4b2;
+  border-color: #e6b800;
+  color: #665200;
+}
+
+select.form-select.spectralon option {
+  background-color: #fff !important;
+  color: #665200;
+}
+
+
+
+
+/* === TABLA DE PARÁMETROS === */
+table {
+  margin-top: 20px;
+  border-collapse: collapse;
+}
+
+table th,
+table td {
+  border: 1px solid #ccc;
+  padding: 10px;
+  vertical-align: middle;
+}
+
+/* === INPUTS DINÁMICOS EN TABLA === */
+table input[type="text"] {
+  width: 100%;
+  padding: 6px 10px;
+  border: 1px solid #bbb;
+  border-radius: 6px;
+}
+
+/* === BOTONES DE GUARDAR Y CERRAR === */
+.botones-config {
+  margin-top: 20px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.botones-config button:disabled {
+  background-color: #f0f0f0;
+  color: #999;
+  cursor: not-allowed;
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 768px) {
+  .ventana-config {
+    padding: 20px;
+  }
+
+  .botones-config {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .botones-config button {
+    width: 100%;
+  }
+}
+
+
+
+

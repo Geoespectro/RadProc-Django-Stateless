@@ -1,0 +1,174 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Manual de Usuario - RadProc GUI</title>
+
+    <link rel="stylesheet" href="{% static 'docs/manual_usuario.css' %}">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+
+<body>
+    <div class="container">
+        <h1>Guía Rápida de Usuario</h1>
+
+        <p>
+            <strong>RadProc GUI</strong> es una herramienta de procesamiento espectral desarrollada para la gestión y
+            análisis de mediciones de radiometría, tanto en agua como en suelo, con opciones configurables y registro de
+            logs automáticos.
+        </p>
+
+        <h2>Interfaz de la Aplicación</h2>
+        <ul>
+            <li>
+                <strong><span style="color:#0083b0;">&#9432;</span> Información:</strong> Abre esta guia de
+                usuario en tu navegador.
+            </li>
+            <li>
+                <strong>Configuración <span style="color:#0083b0;">&#9881;</span>:</strong> Acceso a opciones avanzadas
+                y edición de parámetros de procesamiento.
+            </li>
+            <li>
+                <strong>Modo Claro/Oscuro <span style="color:#6b9800;">☀/🌙</span>:</strong> Cambia el aspecto visual
+                para trabajar cómodo en cualquier entorno.
+            </li>
+            <li>
+                <strong>Procesar datos:</strong> Ejecuta el procesamiento según el tipo de medición seleccionado (agua o
+                suelo).
+            </li>
+            <li>
+                <strong>Exportar log:</strong> Permite exportar uno o varios registros detallados de cada ejecución
+                (formato XML), útiles para control, auditoría o reportes.
+            </li>
+        </ul>
+
+        <hr>
+
+        <h2>Configuración avanzada</h2>
+        <ul>
+            <li>
+                <strong>Opciones avanzadas:</strong> Ajustá el método de cálculo de reflectancia, cantidad de
+                mediciones, etiquetas de puntos y otros parámetros usados en el procesamiento.
+            </li>
+            <li>
+                <strong>Cambio de Spectralon de Referencia:</strong>
+                Si disponés de un nuevo patrón Spectralon (placa de referencia), podés actualizarlo desde la interfaz.
+                La acción requiere contraseña para evitar errores accidentales.
+            </li>
+            <li>
+                <strong>Flexibilidad total:</strong> Todas las configuraciones quedan guardadas para futuras ejecuciones
+                y podés adaptarlas a distintos ensayos o campañas.
+            </li>
+        </ul>
+
+        <hr>
+
+        <h2>¿Cómo preparar los datos para el procesamiento?</h2>
+        <div class="tip">
+            <strong>¡Importante!</strong> Respetá la estructura de carpetas recomendada para asegurar un procesamiento
+            sin errores y la trazabilidad de cada campaña.
+        </div>
+
+        <h3>Estructura para medición de AGUA</h3>
+        <pre>
+123-20240513-SUS/
+    Radiometria/
+        Texto Rad CorrPar/
+            *.txt
+    ...
+    </pre>
+        <h3>Estructura para medición de SUELO</h3>
+        <pre>
+183-20220816-SG/
+    Radiometria/
+        Texto Rad CorrPar/
+            *.txt
+    ...
+    </pre>
+        <p>
+            Los nombres de carpeta siguen el patrón <code>código-fecha-nombre_campaña</code> y deben respetarse.
+        </p>
+
+        <hr>
+
+        <h2>Gestión y exportación de logs</h2>
+        <ul>
+            <li>
+                <strong>¿Dónde se guardan los logs?</strong><br>
+                Todos los logs se almacenan automáticamente en la carpeta <code>logs/</code> dentro del directorio de la
+                aplicación.
+            </li>
+            <li>
+                <strong>¿Qué contienen?</strong><br>
+                Cada log XML incluye metadatos de la ejecución, rutas de entrada/salida, tipo de procesamiento,
+                parámetros, eventos y advertencias, facilitando la auditoría y trazabilidad de cada proceso.
+            </li>
+            <li>
+                <strong>¿Cómo exportarlos?</strong><br>
+                Usá el botón “Exportar log” para seleccionar y copiar uno o varios registros a la carpeta que desees
+                (por ejemplo, para enviar al cliente).
+            </li>
+        </ul>
+        <div class="tip">
+            <strong>Recomendación:</strong> Conservá siempre los logs de cada campaña como respaldo y soporte ante
+            auditorías.
+        </div>
+
+        <hr>
+
+        <h2>¿Qué hacer ante errores o dudas?</h2>
+        <ul>
+        <li>Revisá el mensaje en el área de log (abajo del botón “Procesar datos”). Los mensajes de error o advertencia se destacan con color.</li>
+        <li>Consultá esta guía presionando <span style="color:#0083b0;">&#9432;</span>.</li>
+        <li>Si el problema persiste, contactá al equipo técnico:</li>
+        <ul>
+            <li><a href="mailto:jquinteros@sec.conae.gov.ar">jquinteros@sec.conae.gov.ar</a></li>
+            <li><a href="mailto:privolta@conae.gov.ar">privolta@conae.gov.ar</a></li>
+            <li><a href="mailto:sheredia@conae.gob.ar">sheredia@conae.gob.ar</a></li>
+        </ul>
+    </ul>
+
+        <hr>
+
+        <h2>Preguntas Frecuentes</h2>
+        <ul>
+            <li><strong>¿Puedo usar cualquier formato de archivo?</strong><br>
+                No. Solo se aceptan archivos <code>.txt</code> generados por el equipo correspondiente y estructurados
+                en las carpetas correctas.
+            </li>
+            <li><strong>¿Qué hago si recibo un mensaje de error al procesar?</strong><br>
+                Verificá que las carpetas y archivos estén correctamente ubicados y nombrados. Consultá el área de log
+                para más detalles.
+            </li>
+            <li><strong>¿Puedo cambiar la carpeta de resultados?</strong><br>
+                Sí, seleccioná la carpeta de resultados antes de procesar. El programa recordará tu elección.
+            </li>
+            <li><strong>¿Cómo cambio el modo visual?</strong><br>
+                Usá el botón de sol/luna en la barra superior para alternar entre modo claro y oscuro.
+            </li>
+            <li><strong>¿Los logs pueden usarse como registro?</strong><br>
+                Sí, son registros detallados de cada ejecución y pueden compartirse o resguardarse según necesidad.
+            </li>
+        </ul>
+
+        <hr>
+        <h2>Resumen rápido</h2>
+        <ul>
+            <li>Siempre usá las carpetas con estructura recomendada.</li>
+            <li>Verificá el tipo de medición en la interfaz antes de procesar.</li>
+            <li>Guardá y exportá los logs después de cada ejecución importante.</li>
+            <li>Si tenés dudas, ¡volvé a esta guia!</li>
+        </ul>
+        <br>
+        <div style="text-align:center;color:#666;font-size:0.97em;margin-top:2em;">
+            © 2025 Comisión Nacional de Actividades Espaciales (CONAE).<br>
+            Desarrollo: Juan Carlos Enrique Quinteros, Pedro Rivolta, Sebastián Heredia.<br>
+            Todos los derechos reservados.
+        </div>
+    </div>
+</body>
+
+</html>

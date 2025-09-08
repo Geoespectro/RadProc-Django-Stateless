@@ -1,0 +1,125 @@
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block title %}Inicio | RadProc{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/index.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<!-- === Selector de tipo de medición === -->
+<div class="row mb-4">
+  <div class="col-md-6">
+    <label for="tipo-medicion" class="form-label">Tipo de medición:</label>
+    <select id="tipo-medicion" class="form-select" required>
+      <option value="" {% if not tipo_seleccionado %}selected{% endif %} disabled hidden>
+        Selecciona un tipo de medición
+      </option>
+      <option value="agua" {% if tipo_seleccionado == "agua" %}selected{% endif %}>Agua</option>
+      <option value="suelo" {% if tipo_seleccionado == "suelo" %}selected{% endif %}>Suelo</option>
+    </select>
+  </div>
+</div>
+
+<!-- === Formulario para subir y procesar ZIP === -->
+<form action="/procesar/" method="post" enctype="multipart/form-data" id="form-datos" class="mb-4">
+  {% csrf_token %}
+  <input type="hidden" name="tipo_medicion" id="tipo-medicion-hidden" value="{{ tipo_seleccionado }}">
+
+  <div class="input-group">
+    <input type="file" name="zipfile" accept=".zip" class="form-control" required>
+    <button type="submit" class="btn btn-primary">Procesar y descargar</button>
+  </div>
+
+  <!-- Mensaje visual debajo del input file -->
+  <div class="form-text mt-2" id="nombre-carpeta-datos">
+    {% if nombre_zip %}
+    <span class="text-success">✅ Datos cargados: {{ nombre_zip }}</span>
+    <script>
+      sessionStorage.setItem("datos_cargados", "1");
+    </script>
+    {% else %}
+    <span class="text-muted">Ningún archivo seleccionado</span>
+    <script>
+      sessionStorage.removeItem("datos_cargados");
+    </script>
+    {% endif %}
+  </div>
+</form>
+
+<!-- === Sección Spectralon === -->
+<div class="row align-items-center mb-4">
+  <div class="col-md-6">
+    <label class="form-label"><strong>Spectralon de Referencia:</strong></label>
+  </div>
+  <div class="col-md-6 d-flex justify-content-between align-items-center">
+    <span class="text-muted" id="nombre-spectralon">{{ nombre_spectralon }}</span>
+
+    <form id="form-spectralon" action="/cambiar_spectralon/" method="post" enctype="multipart/form-data"
+      class="d-flex align-items-center gap-2">
+      {% csrf_token %}
+      <button type="button" class="btn btn-outline-primary btn-sm m-0" id="btn-cambiar-spectralon">
+        Cambiar...
+      </button>
+      <input type="file" id="input-spectralon" name="nuevo_spectralon" accept=".txt" style="display: none;">
+    </form>
+  </div>
+</div>
+
+<!-- === Modal para ingresar clave === -->
+<div class="modal fade" id="claveModal" tabindex="-1" aria-labelledby="claveModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title" id="claveModalLabel">Configuración Avanzada</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+
+      <div class="modal-body">
+        <p>⚠️ Esta acción reemplazará el archivo actual de Spectralon. Ingresa la clave para continuar.</p>
+        <input type="password" class="form-control" id="clave-input" placeholder="Clave de acceso">
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-danger" id="confirmar-clave-btn">Confirmar</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- === Log de procesamiento y acciones === -->
+<div class="position-relative">
+  <div class="mb-4">
+    <textarea class="form-control mb-3" rows="5" readonly>{{ log }}</textarea>
+
+    <div class="d-flex justify-content-between gap-2 flex-wrap">
+      <form action="{% url 'limpiar_sesion' %}" method="post" class="m-0" onsubmit="sessionStorage.clear()">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-outline-danger btn-sm">🧹 Limpiar</button>
+      </form>
+
+      <div class="d-flex gap-2 flex-wrap">
+        <button type="button" class="btn btn-success btn-sm">Exportar log</button>
+        <!-- ⚠️ El botón de descargar resultados fue eliminado porque ahora
+             el ZIP se entrega directamente tras procesar -->
+      </div>
+    </div>
+  </div>
+
+  <div class="logo-app-wrapper">
+    <img src="{% static 'img/radproc_logo.svg' %}" alt="Logo RadProc" class="logo-app">
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/index.js' %}"></script>
+{% endblock %}
+
+

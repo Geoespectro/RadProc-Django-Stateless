@@ -1,0 +1,38 @@
+# Entorno virtual
+venv/
+
+# Archivos compilados de Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Base de datos local (cada quien usa la suya)
+db.sqlite3
+
+# Archivos de logs
+*.log
+
+# Configuraciones de IDE/Editor
+.vscode/
+.idea/
+
+# Archivos/mensajes temporales de pruebas
+*.tmp
+*.swp
+
+# Media y descargas generadas (no versionar resultados temporales)
+media/
+procesamiento/output/
+procesamiento/input/
+procesamiento/input_w/
+
+# Cache de tests o linters
+.mypy_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db
