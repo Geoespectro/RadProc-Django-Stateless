@@ -1,18 +1,27 @@
-// index.js — stateless: sin persistencia automática del LOG y limpieza total al "Limpiar"
+// index.js — stateless
+// - Sin persistencia automática del LOG
+// - Limpieza total al "Limpiar"
+// - Spectralon: input dentro del form principal (sin modal/clave)
+
 document.addEventListener("DOMContentLoaded", function () {
   const tipoSelect = document.getElementById("tipo-medicion");
   const hiddenMedicion = document.getElementById("tipo-medicion-hidden");
 
-  // Tomamos el input de archivo por name="zipfile" (tu HTML)
+  // ZIP principal
   const inputArchivo = document.querySelector('input[name="zipfile"]');
-
   const formDatos = document.getElementById("form-datos");
   const btnProcesar =
     document.getElementById("btn-procesar") ||
     (formDatos ? formDatos.querySelector('button[type="submit"]') : null);
 
+  // UI auxiliares
   const nombreSpan = document.getElementById("nombre-carpeta-datos");
   const logArea = document.querySelector('textarea.form-control');
+
+  // Spectralon (opcional, en el mismo form)
+  const btnCambiarSpectralon = document.getElementById("btn-cambiar-spectralon");
+  const inputSpectralon = document.getElementById("input-spectralon");
+  const nombreSpectralon = document.getElementById("nombre-spectralon");
 
   // --- Helpers UI ---
   function setNombreArchivoOk(nombre) {
@@ -23,15 +32,18 @@ document.addEventListener("DOMContentLoaded", function () {
       nombreSpan.innerHTML = `<span class="text-muted">Ningún archivo seleccionado</span>`;
     }
   }
+
   function setNombreArchivoRequerido(msg = "Debes volver a cargar el archivo ZIP antes de procesar.") {
     if (!nombreSpan) return;
     nombreSpan.innerHTML = `<span class="text-warning">⚠️ ${msg}</span>`;
   }
+
   function habilitarCargaSiHayTipo() {
     const hayTipo = !!(tipoSelect && tipoSelect.value);
     if (inputArchivo) inputArchivo.disabled = !hayTipo;
     if (btnProcesar) btnProcesar.disabled = !hayTipo;
   }
+
   function aplicarColorSelect() {
     if (!tipoSelect) return;
     tipoSelect.classList.remove("agua", "suelo");
@@ -51,6 +63,8 @@ document.addEventListener("DOMContentLoaded", function () {
     sessionStorage.removeItem("zip_name");
     if (typeof mostrarToast === 'function') {
       mostrarToast("ℹ️ Modificaste Configuraciones. Por favor, vuelve a cargar el archivo ZIP antes de procesar.");
+    } else {
+      alert("ℹ️ Modificaste Configuraciones. Por favor, vuelve a cargar el archivo ZIP antes de procesar.");
     }
     setNombreArchivoRequerido();
   } else {
@@ -68,12 +82,14 @@ document.addEventListener("DOMContentLoaded", function () {
       if (sessionStorage.getItem("archivo_seleccionado") === "1") {
         if (typeof mostrarToast === 'function') {
           mostrarToast("ℹ️ Cambiaste el tipo de medición. Verifica que el ZIP corresponda al tipo seleccionado.");
+        } else {
+          alert("ℹ️ Cambiaste el tipo de medición. Verifica que el ZIP corresponda al tipo seleccionado.");
         }
       }
     });
   }
 
-  // --- Interacción con input file ---
+  // --- Interacción con input file (ZIP) ---
   if (inputArchivo) {
     // Bloquear diálogo si no hay tipo
     inputArchivo.addEventListener("click", (e) => {
@@ -128,20 +144,32 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // === Spectralon auto-submit (si está en esta página) ===
-  const inputSpectralon = document.getElementById("input-spectralon");
-  const formSpectralon = document.getElementById("form-spectralon");
-  if (inputSpectralon && formSpectralon) {
+  // === Spectralon en el mismo form (sin modal/clave) ===
+  // Guardas idempotentes para evitar doble binding si el script se inyecta dos veces
+  if (btnCambiarSpectralon && !btnCambiarSpectralon.dataset.bound) {
+    btnCambiarSpectralon.addEventListener("click", () => {
+      if (inputSpectralon) inputSpectralon.click();
+    });
+    btnCambiarSpectralon.dataset.bound = "1";
+  }
+
+  if (inputSpectralon && !inputSpectralon.dataset.bound) {
     inputSpectralon.addEventListener("change", () => {
-      if (inputSpectralon.files.length > 0) {
-        formSpectralon.submit();
+      const f = inputSpectralon.files && inputSpectralon.files[0];
+      if (f && nombreSpectralon) {
+        nombreSpectralon.textContent = `Spectralon seleccionado: ${f.name} (solo esta ejecución)`;
+        nombreSpectralon.classList.remove('text-muted');
+      } else if (nombreSpectralon) {
+        // Volver al texto renderizado por el backend si se deselecciona
+        nombreSpectralon.textContent = nombreSpectralon.getAttribute('data-default') || "SRT-99-120.txt (por defecto)";
+        nombreSpectralon.classList.add('text-muted');
       }
     });
+    inputSpectralon.dataset.bound = "1";
   }
 
   // ====== LIMPIAR: borra todo el estado del lado cliente antes de salir ======
   (function () {
-    // Si tu form de limpiar tiene id en el template, mejor: <form id="form-limpiar" ...>
     const formLimpiar = document.getElementById("form-limpiar") ||
                         document.querySelector('form[action$="limpiar_sesion/"]');
 
@@ -149,59 +177,26 @@ document.addEventListener("DOMContentLoaded", function () {
 
     formLimpiar.addEventListener("submit", function () {
       try {
-        // Estado del navegador
         sessionStorage.clear();
-        // Si usás alguna preferencia en localStorage para el select, podés limpiarla aquí:
-        // localStorage.removeItem("tipo_seleccionado");
-
-        // UI inmediata (así el usuario ve todo vacío al instante)
         if (tipoSelect) {
           tipoSelect.value = "";
           tipoSelect.classList.remove("agua", "suelo");
         }
-        if (inputArchivo) {
-          inputArchivo.value = "";
-        }
+        if (inputArchivo) inputArchivo.value = "";
         if (nombreSpan) {
           nombreSpan.innerHTML = `<span class="text-muted">Ningún archivo seleccionado</span>`;
         }
-        if (logArea) {
-          logArea.value = "";
+        if (logArea) logArea.value = "";
+        if (inputSpectralon && nombreSpectralon) {
+          inputSpectralon.value = "";
+          nombreSpectralon.textContent = "SRT-99-120.txt (por defecto)";
+          nombreSpectralon.classList.add('text-muted');
         }
       } catch (e) {
         console.warn("No se pudo limpiar completamente el estado local:", e);
       }
       // el submit continúa y el backend hace request.session.flush()
     });
-  })();
-
-  // === Modal de clave (si existe en esta página) ===
-  (function () {
-    const btnCambiar = document.getElementById("btn-cambiar-spectralon");
-    const confirmarClaveBtn = document.getElementById("confirmar-clave-btn");
-    const claveInput = document.getElementById("clave-input");
-    const modalEl = document.getElementById("claveModal");
-    const modalClave = modalEl ? new bootstrap.Modal(modalEl, { backdrop: 'static' }) : null;
-
-    if (btnCambiar && inputSpectralon && confirmarClaveBtn && claveInput && modalClave) {
-      btnCambiar.addEventListener("click", () => {
-        claveInput.value = "";
-        modalClave.show();
-      });
-
-      confirmarClaveBtn.addEventListener("click", () => {
-        const clave = claveInput.value;
-        const CLAVE_CORRECTA = "1234";
-        if (clave === CLAVE_CORRECTA) {
-          modalClave.hide();
-          setTimeout(() => inputSpectralon.click(), 200);
-        } else {
-          if (typeof mostrarToast === 'function') mostrarToast("❌ Clave incorrecta.");
-          else alert("❌ Clave incorrecta.");
-          claveInput.value = "";
-        }
-      });
-    }
   })();
 });
 

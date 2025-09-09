@@ -36,3 +36,8 @@ htmlcov/
 # Archivos de sistema
 .DS_Store
 Thumbs.db
+
+# Archivos de entorno / build
+.env
+*.env
+staticfiles/

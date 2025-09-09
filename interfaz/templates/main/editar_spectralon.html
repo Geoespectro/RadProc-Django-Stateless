@@ -25,6 +25,9 @@
 
   <form action="{% url 'guardar_spectralon' %}" method="post">
     {% csrf_token %}
+    <!-- 🔧 Preservar el tipo al guardar -->
+    <input type="hidden" name="tipo_actual" value="{{ tipo_actual }}">
+
     <div class="mb-3">
       <textarea name="contenido_txt" class="form-control editor">{{ contenido_txt }}</textarea>
     </div>
@@ -36,5 +39,16 @@
   </form>
 </section>
 {% endblock %}
+
+{% block extra_js %}
+<script>
+  // Opcional: que el botón Inicio del navbar vuelva con el tipo correcto
+  document.addEventListener('DOMContentLoaded', function () {
+    const homeBtn = document.querySelector('a[title="Inicio"]');
+    if (homeBtn) homeBtn.setAttribute('href', '/?tipo={{ tipo_actual }}');
+  });
+</script>
+{% endblock %}
+
 
 

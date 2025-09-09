@@ -23,11 +23,12 @@
   </div>
 </div>
 
-<!-- === Formulario para subir y procesar ZIP === -->
+<!-- === Formulario para subir y procesar ZIP (+ Spectralon opcional) === -->
 <form action="/procesar/" method="post" enctype="multipart/form-data" id="form-datos" class="mb-4">
   {% csrf_token %}
   <input type="hidden" name="tipo_medicion" id="tipo-medicion-hidden" value="{{ tipo_seleccionado }}">
 
+  <!-- ZIP principal -->
   <div class="input-group">
     <input type="file" name="zipfile" accept=".zip" class="form-control" required>
     <button type="submit" class="btn btn-primary">Procesar y descargar</button>
@@ -36,61 +37,41 @@
   <!-- Mensaje visual debajo del input file -->
   <div class="form-text mt-2" id="nombre-carpeta-datos">
     {% if nombre_zip %}
-    <span class="text-success">✅ Datos cargados: {{ nombre_zip }}</span>
-    <script>
-      sessionStorage.setItem("datos_cargados", "1");
-    </script>
+      <span class="text-success">✅ Datos cargados: {{ nombre_zip }}</span>
+      <script>sessionStorage.setItem("datos_cargados","1");</script>
     {% else %}
-    <span class="text-muted">Ningún archivo seleccionado</span>
-    <script>
-      sessionStorage.removeItem("datos_cargados");
-    </script>
+      <span class="text-muted">Ningún archivo seleccionado</span>
+      <script>sessionStorage.removeItem("datos_cargados");</script>
     {% endif %}
   </div>
-</form>
 
-<!-- === Sección Spectralon === -->
-<div class="row align-items-center mb-4">
-  <div class="col-md-6">
-    <label class="form-label"><strong>Spectralon de Referencia:</strong></label>
-  </div>
-  <div class="col-md-6 d-flex justify-content-between align-items-center">
-    <span class="text-muted" id="nombre-spectralon">{{ nombre_spectralon }}</span>
+  <!-- === Spectralon (opcional, sólo para esta ejecución) === -->
+  <hr class="my-4">
+  <div class="row align-items-center g-3">
+    <div class="col-md-6">
+      <label class="form-label mb-0"><strong>Spectralon de Referencia (opcional):</strong></label>
+      <div class="form-text">
+        ⚠️ Si adjuntas un Spectralon, se usará <u>solo en esta ejecución</u>. No se guardará.
+      </div>
+    </div>
 
-    <form id="form-spectralon" action="/cambiar_spectralon/" method="post" enctype="multipart/form-data"
-      class="d-flex align-items-center gap-2">
-      {% csrf_token %}
+    <div class="col-md-6 d-flex justify-content-between align-items-center">
+      <span class="text-muted" id="nombre-spectralon">
+        {{ nombre_spectralon }}
+      </span>
+
+      <!-- Ahora el input va DENTRO del form principal -->
       <button type="button" class="btn btn-outline-primary btn-sm m-0" id="btn-cambiar-spectralon">
-        Cambiar...
+        Cambiar…
       </button>
-      <input type="file" id="input-spectralon" name="nuevo_spectralon" accept=".txt" style="display: none;">
-    </form>
-  </div>
-</div>
-
-<!-- === Modal para ingresar clave === -->
-<div class="modal fade" id="claveModal" tabindex="-1" aria-labelledby="claveModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-
-      <div class="modal-header">
-        <h5 class="modal-title" id="claveModalLabel">Configuración Avanzada</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-      </div>
-
-      <div class="modal-body">
-        <p>⚠️ Esta acción reemplazará el archivo actual de Spectralon. Ingresa la clave para continuar.</p>
-        <input type="password" class="form-control" id="clave-input" placeholder="Clave de acceso">
-      </div>
-
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-        <button type="button" class="btn btn-danger" id="confirmar-clave-btn">Confirmar</button>
-      </div>
-
+      <input type="file"
+             id="input-spectralon"
+             name="spectralon_txt"
+             accept=".txt"
+             style="display:none">
     </div>
   </div>
-</div>
+</form>
 
 <!-- === Log de procesamiento y acciones === -->
 <div class="position-relative">
@@ -105,8 +86,7 @@
 
       <div class="d-flex gap-2 flex-wrap">
         <button type="button" class="btn btn-success btn-sm">Exportar log</button>
-        <!-- ⚠️ El botón de descargar resultados fue eliminado porque ahora
-             el ZIP se entrega directamente tras procesar -->
+        <!-- ⚠️ El botón de descargar resultados fue eliminado: el ZIP se entrega al procesar -->
       </div>
     </div>
   </div>
@@ -120,6 +100,31 @@
 
 {% block extra_js %}
 <script src="{% static 'js/index.js' %}"></script>
+<script>
+  // Integración mínima para Spectralon en el mismo form:
+  document.addEventListener('DOMContentLoaded', function () {
+    const btn = document.getElementById('btn-cambiar-spectralon');
+    const input = document.getElementById('input-spectralon');
+    const nombre = document.getElementById('nombre-spectralon');
+
+    if (btn && input) {
+      btn.addEventListener('click', () => input.click());
+    }
+    if (input && nombre) {
+      input.addEventListener('change', () => {
+        const f = input.files && input.files[0];
+        if (f) {
+          nombre.textContent = `Spectralon seleccionado: ${f.name} (solo esta ejecución)`;
+          nombre.classList.remove('text-muted');
+        } else {
+          // Vuelve al texto que renderizó el backend
+          nombre.textContent = "{{ nombre_spectralon }}";
+          nombre.classList.add('text-muted');
+        }
+      });
+    }
+  });
+</script>
 {% endblock %}
 
 
