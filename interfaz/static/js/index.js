@@ -201,4 +201,46 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 
+// === Helpers de LOG en pantalla (inicio) ===
+(function () {
+  // Usa un id fijo para no confundir con otros textareas
+  const getLogEl = () => document.getElementById('log-area');
+
+  // Agrega una línea con timestamp y salto REAL de línea
+  function appendLog(msg) {
+    const el = getLogEl();
+    if (!el) return;
+    const ts = new Date().toLocaleString('es-AR', {
+      year: 'numeric', month: '2-digit', day: '2-digit',
+      hour: '2-digit', minute: '2-digit', second: '2-digit',
+      hour12: false
+    });
+    const line = `[${ts}] ${msg}`;
+    el.value = (el.value ? el.value + '\n' : '') + line;  // 👈 '\n' real
+    // Autoscroll al final
+    el.scrollTop = el.scrollHeight;
+  }
+
+  // Reemplaza \n literales mal impresas (por si vienen de render del backend)
+  function normalizeLogNewlines() {
+    const el = getLogEl();
+    if (!el) return;
+    el.value = el.value.replace(/\\n/g, '\n');
+    el.scrollTop = el.scrollHeight;
+  }
+
+  // Limpia el log
+  function clearLog() {
+    const el = getLogEl();
+    if (el) el.value = '';
+  }
+
+  // Exponer global para poder llamarlo desde otros scripts
+  window.appendLog = appendLog;
+  window.clearLog = clearLog;
+  window.normalizeLogNewlines = normalizeLogNewlines;
+
+  // Normaliza al cargar la página por si el template puso "\n" como texto
+  document.addEventListener('DOMContentLoaded', normalizeLogNewlines);
+})();
 

@@ -1,4 +1,3 @@
-# procesamiento/service.py
 from __future__ import annotations
 
 """
@@ -28,6 +27,8 @@ from io import BytesIO
 from typing import Dict, Any, Literal, Optional, List, Tuple
 from tempfile import TemporaryDirectory
 import zipfile
+from datetime import datetime, timezone, timedelta
+import hashlib
 
 # Runners stateless
 from procesamiento.processors.agua import run as run_agua
@@ -218,8 +219,61 @@ def process_zip(
         else:
             meta = run_suelo(input_dir=in_dir, output_dir=out_dir, config=cfg)
 
-        # 6) Empaquetar resultados + metadata.json
-        meta_bytes = json.dumps(meta or {}, ensure_ascii=False, indent=2).encode("utf-8")
+        # ---------------------------
+        # Enriquecer metadata.json
+        # ---------------------------
+        meta2 = dict(meta or {})
+
+        # produced -> a rutas RELATIVAS dentro de out_dir
+        produced_abs = meta2.get("produced", []) or []
+        produced_rel: List[str] = []
+        for p in produced_abs:
+            try:
+                rel = os.path.relpath(p, out_dir)
+                if rel.startswith(".."):
+                    rel = p  # si no cuadra, deja tal cual
+            except Exception:
+                rel = p
+            produced_rel.append(rel)
+        meta2["produced"] = produced_rel
+
+        # campaign: primer componente de la primera ruta relativa
+        campaign = ""
+        if produced_rel:
+            parts = produced_rel[0].split(os.sep)
+            if parts:
+                campaign = parts[0]
+        if campaign:
+            meta2.setdefault("campaigns", [])
+            if campaign not in meta2["campaigns"]:
+                meta2["campaigns"].append(campaign)
+            meta2["campaign"] = campaign
+
+        # contexto y auditoría
+        meta2["kind"] = kind  # "agua" | "suelo"
+        meta2["run_id"] = datetime.now(timezone(timedelta(hours=-3))).isoformat()
+        meta2["processor_version"] = "radproc-web 1.0.0"
+        meta2.setdefault("notes", "Procesamiento stateless")
+
+        # parámetros efectivos (defaults + overrides)
+        meta2["params_effective"] = cfg
+
+        # inputs básicos
+        spec_src = "uploaded" if spectralon_txt_bytes else "default"
+        spec_name = os.path.basename(cfg.get("spectralon_file", "SRT-99-120.txt"))
+        spec_sha = hashlib.sha256(spectralon_txt_bytes).hexdigest() if spectralon_txt_bytes else ""
+        meta2["inputs"] = {
+            "zip_name": meta2.get("inputs", {}).get("zip_name", "upload.zip"),
+            "zip_size_bytes": len(zip_bytes),
+            "spectralon": {
+                "source": spec_src,
+                "name": spec_name,
+                "sha256": spec_sha
+            }
+        }
+
+        # 6) Empaquetar resultados + metadata.json enriquecido
+        meta_bytes = json.dumps(meta2, ensure_ascii=False, indent=2).encode("utf-8")
         out_zip = _zip_dir_to_bytes(out_dir, extra_files=[("metadata.json", meta_bytes)])
         return out_zip
 
@@ -279,5 +333,51 @@ def process_folder_to_zip(
         else:
             meta = run_suelo(input_dir=in_dir, output_dir=out_dir, config=cfg)
 
-        meta_bytes = json.dumps(meta or {}, ensure_ascii=False, indent=2).encode("utf-8")
+        # Enriquecer también en el helper local para coherencia
+        meta2 = dict(meta or {})
+        produced_abs = meta2.get("produced", []) or []
+        produced_rel: List[str] = []
+        for p in produced_abs:
+            try:
+                rel = os.path.relpath(p, out_dir)
+                if rel.startswith(".."):
+                    rel = p
+            except Exception:
+                rel = p
+            produced_rel.append(rel)
+        meta2["produced"] = produced_rel
+
+        campaign = ""
+        if produced_rel:
+            parts = produced_rel[0].split(os.sep)
+            if parts:
+                campaign = parts[0]
+        if campaign:
+            meta2.setdefault("campaigns", [])
+            if campaign not in meta2["campaigns"]:
+                meta2["campaigns"].append(campaign)
+            meta2["campaign"] = campaign
+
+        meta2["kind"] = kind
+        meta2["run_id"] = datetime.now(timezone(timedelta(hours=-3))).isoformat()
+        meta2["processor_version"] = "radproc-web 1.0.0"
+        meta2.setdefault("notes", "Procesamiento stateless")
+        meta2["params_effective"] = cfg
+
+        spec_src = "uploaded" if spectralon_txt_path else "default"
+        spec_name = os.path.basename(cfg.get("spectralon_file", "SRT-99-120.txt"))
+        spec_sha = ""
+        try:
+            if spectralon_txt_path and os.path.isfile(spectralon_txt_path):
+                with open(spectralon_txt_path, "rb") as _f:
+                    spec_sha = hashlib.sha256(_f.read()).hexdigest()
+        except Exception:
+            spec_sha = ""
+        meta2["inputs"] = {
+            "zip_name": meta2.get("inputs", {}).get("zip_name", "folder-import"),
+            "zip_size_bytes": 0,
+            "spectralon": {"source": spec_src, "name": spec_name, "sha256": spec_sha},
+        }
+
+        meta_bytes = json.dumps(meta2, ensure_ascii=False, indent=2).encode("utf-8")
         return _zip_dir_to_bytes(out_dir, extra_files=[("metadata.json", meta_bytes)])

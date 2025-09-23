@@ -117,13 +117,7 @@
     }
   }
 
-  function appendLog(msg) {
-    const ta = document.getElementById('log-area');
-    if (!ta) return;
-    const now = new Date().toLocaleString();
-    ta.value = (ta.value ? ta.value + '\\n' : '') + `[${now}] ${msg}`;
-    ta.scrollTop = ta.scrollHeight;
-  }
+
 
   // === Manejo de Spectralon en el mismo form ===
   document.addEventListener('DOMContentLoaded', function () {

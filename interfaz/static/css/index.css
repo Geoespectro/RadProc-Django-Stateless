@@ -133,3 +133,12 @@ textarea.form-control {
 .toast-aviso.fade-out {
   opacity: 0;
 }
+
+
+/* LOG: mostrar saltos reales y envolver líneas largas */
+#log-area {
+  white-space: pre-wrap;   /* respeta \n y envuelve */
+  line-height: 1.25;
+  overflow: auto;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+}

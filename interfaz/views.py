@@ -73,7 +73,6 @@ def vista_principal(request):
     }
     return render(request, "main/index.html", ctx)
 
-
 @csrf_exempt
 def procesar(request):
     """
@@ -103,11 +102,16 @@ def procesar(request):
     except Exception:
         return HttpResponse("params inválido (debe ser JSON).", status=400)
 
+    # 🔧 Fusionar overrides guardados en sesión
+    all_over = request.session.get("config_overrides", {})
+    if isinstance(all_over, dict) and isinstance(all_over.get(tipo), dict):
+        for k, v in all_over[tipo].items():
+            params.setdefault(k, v)
+
     # Overrides de Spectralon (opcional)
     spectralon_txt_bytes = None
     spec_file = request.FILES.get("spectralon_txt")
     if spec_file:
-        # límite por si lo usan desde UI (ajustable por env)
         max_mb = int(os.getenv("MAX_SPEC_MB", "2"))
         if spec_file.size > max_mb * 1024 * 1024:
             return HttpResponse(f"El archivo Spectralon supera {max_mb} MB.", status=400)
@@ -124,7 +128,6 @@ def procesar(request):
             return HttpResponse("spectralon_params inválido (JSON).", status=400)
 
     # Compatibilidad con flujo "cambiar_spectralon" / "editar_spectralon"
-    # Guardado temporal en /tmp y path en sesión
     if spectralon_txt_bytes is None:
         tmp_path = _session_pop(request, "spectralon_tmp_path")
         if tmp_path and os.path.isfile(tmp_path):
@@ -148,7 +151,6 @@ def procesar(request):
             spectralon_txt_bytes=spectralon_txt_bytes,
             spectralon_params_override=spectralon_params_override,
         )
-        # Mensajes de UI
         request.session["zip_nombre"] = getattr(up, "name", "datos.zip")
         request.session["zip_tipo"] = tipo
         request.session["log_resultado"] = "✅ Procesamiento completado. Se descargó el ZIP."
@@ -160,6 +162,8 @@ def procesar(request):
     resp = HttpResponse(out_zip, content_type="application/zip")
     resp["Content-Disposition"] = f'attachment; filename="resultados_{tipo}.zip"'
     return resp
+
+
 
 
 def _build_config_context(tipo: str) -> dict:
