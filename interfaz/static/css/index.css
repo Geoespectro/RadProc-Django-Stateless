@@ -3,30 +3,25 @@
    ========================================== */
 
 /* === FORMULARIO ZIP === */
-/* Evita que los elementos del input + botón se apilen */
-#form-datos .input-group {
-  flex-wrap: nowrap;
-}
+#form-datos .input-group { flex-wrap: nowrap; }
 
-/* Estilo para mostrar el nombre del archivo ZIP cargado */
-#nombre-carpeta-datos {
-  font-size: 0.9rem;
-  color: #555;
-}
+/* Nombre del ZIP cargado (debajo del input) */
+#nombre-carpeta-datos { font-size: .9rem; color: #555; }
+body.modo-oscuro #nombre-carpeta-datos { color: var(--c-muted); }
 
-/* === DESCARGA DE RESULTADOS === */
-/* Subimos un poco el bloque de descarga para mejor alineación visual */
-form[action="/descargar_resultados/"] {
-  margin-top: -20px;
-}
+/* Empuje fino del bloque de descarga (si lo usás) */
+form[action="/descargar_resultados/"] { margin-top: -20px; }
 
-/* === BLOQUE SPECTRALON === */
-/* Fondo claro + borde lateral para resaltar la sección */
+/* === BLOQUE SPECTRALON (opcional) === */
 .row.align-items-center.mb-4 {
-  background-color: #f3faff;
+  background: #f3faff;                 /* claro */
   border-left: 4px solid #00aaff;
   padding: 10px 15px;
   border-radius: 6px;
+}
+body.modo-oscuro .row.align-items-center.mb-4 {
+  background: #152028;                 /* equivalente legible en dark */
+  border-left-color: #3da5ff;
 }
 
 /* Texto del nombre del archivo centrado y destacado */
@@ -36,109 +31,91 @@ form[action="/descargar_resultados/"] {
   display: block;
 }
 
-/* === BOTÓN CAMBIAR === */
-/* Evita que el texto del botón se rompa en dos líneas */
-.row.align-items-center.mb-4 button {
-  white-space: nowrap;
-}
+/* Previene quiebre de línea en el botón Cambiar… */
+.row.align-items-center.mb-4 button { white-space: nowrap; }
 
 /* === BARRA DE PROGRESO === */
-/* Altura de la barra */
-.progress {
-  height: 25px;
-}
+.progress { height: 25px; }
+#barra-progreso { font-weight: bold; line-height: 25px; }
 
-/* Estilo del texto dentro de la barra de progreso */
-#barra-progreso {
-  font-weight: bold;
-  line-height: 25px;
-}
-
-/* === LOG Y BOTONES DE ACCIÓN === */
-/* Estilo del cuadro de log */
+/* === LOG DE ACCIONES === */
 textarea.form-control {
-  background-color: #f8fcff;
-  font-family: monospace;
+  background: #f8fcff;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
   resize: none;
 }
-
-
-/* === RESPONSIVE – AJUSTES MÓVILES === */
-@media (max-width: 768px) {
-  /* Ajustes para que el bloque Spectralon se apile verticalmente */
-  .row.align-items-center.mb-4 {
-    flex-direction: column;
-    text-align: center;
-  }
-
-  /* Centrado del botón Cambiar */
-  .row.align-items-center.mb-4 .col-md-4 {
-    justify-content: center;
-  }
-
-  /* Ajustes para los bloques de log + botones en móviles */
-  .d-flex.flex-md-row {
-    flex-direction: column !important;
-  }
-
-  /* Botones se estiran al ancho completo en pantallas chicas */
-  .d-flex.flex-md-row button {
-    align-self: center !important;
-    width: 100%;
-  }
+#log-area {
+  white-space: pre-wrap;  /* respeta \n y envuelve */
+  line-height: 1.25;
+  overflow: auto;
 }
 
-/* === LOGO DE LA APP POSICIONADO SOBRE EL LOG === */
+/* Dark para el log (mejor contraste) */
+body.modo-oscuro textarea.form-control { background: #0f1317; border-color: var(--c-border); }
+
+/* === RESPONSIVE – móviles === */
+@media (max-width: 768px) {
+  .row.align-items-center.mb-4 { flex-direction: column; text-align: center; }
+  .row.align-items-center.mb-4 .col-md-4 { justify-content: center; }
+  .d-flex.flex-md-row { flex-direction: column !important; }
+  .d-flex.flex-md-row button { align-self: center !important; width: 100%; }
+}
+
+/* === LOGO === */
 .logo-app-wrapper {
   position: absolute;
-  top: 100px;  
+  top: 100px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 1;
 }
-
 .logo-app {
   max-width: 160px;
   height: auto;
-  opacity: 0.9;
-  filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.15));
-  transition: transform 0.3s ease;
+  opacity: .9;
+  filter: drop-shadow(0 0 2px rgba(0,0,0,.15));
+  transition: transform .3s ease;
+}
+.logo-app:hover { transform: scale(1.05); }
+
+/* === Toaster fijo (mensaje “Ir a configuraciones”) === */
+.toast-container-fixed { position: fixed; top: 20px; right: 20px; z-index: 9999; }
+
+/* === Dark mode: Spectralon + ayudas + spans muted === */
+
+/* Nombre del Spectralon (id="nombre-spectralon") */
+body.modo-oscuro #nombre-spectralon {
+  color: #d5dee8 !important;   /* gris claro legible */
+  font-weight: 600;            /* un poco más marcado */
+  opacity: 1;
 }
 
-.logo-app:hover {
-  transform: scale(1.05);
+/* Textos de ayuda dentro del bloque Spectralon */
+body.modo-oscuro .row.align-items-center.g-3 .form-text {
+  color: #b8c4d0 !important;   /* gris intermedio */
 }
 
-
-/* === Mensaje a configuraciones === */
-
-.toast-container-fixed {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  z-index: 9999;
+/* Cubre también spans con .text-muted (ej. "Ningún archivo seleccionado") */
+body.modo-oscuro .text-muted {
+  color: #c0c9d2 !important;   /* gris claro uniforme */
 }
 
-.toast-aviso {
-  background-color: #ffc107;
-  color: #000;
-  padding: 10px 16px;
-  border-radius: 4px;
-  margin-bottom: 8px;
-  font-weight: bold;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-  transition: opacity 1s ease-out;
+/* ======================
+   Dark mode: botón "Seleccionar archivo"
+   ====================== */
+
+/* Estado normal en modo oscuro */
+body.modo-oscuro .input-group .form-control[type="file"]::file-selector-button {
+  background-color: #2d343a;
+  color: #e6eef6;
+  border: 1px solid #3f474f;
+  transition: all 0.2s ease-in-out;
 }
 
-.toast-aviso.fade-out {
-  opacity: 0;
+/* Estado hover en modo oscuro */
+body.modo-oscuro .input-group .form-control[type="file"]::file-selector-button:hover {
+  background-color: #ffffff !important;  /* pasa a blanco */
+  color: #000000 !important;             /* texto negro para contraste */
+  border: 1px solid #cccccc !important;
 }
 
-
-/* LOG: mostrar saltos reales y envolver líneas largas */
-#log-area {
-  white-space: pre-wrap;   /* respeta \n y envuelve */
-  line-height: 1.25;
-  overflow: auto;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
-}
