@@ -177,6 +177,16 @@ def _move_strays(tmp_root: str, in_dir: str, out_dir: str) -> List[str]:
             dests.append(dest)
     return dests
 
+def _normalize_spectralon_filename(name: Optional[str]) -> str:
+    """Normaliza el nombre del TXT de Spectralon subido para evitar problemas de ruta."""
+    base = os.path.basename(name or "uploaded_spectralon.txt")
+    base = re.sub(r"[^A-Za-z0-9._-]+", "_", base)
+    if not base.lower().endswith(".txt"):
+        base += ".txt"
+    if len(base) > MAX_NAME_LEN:
+        base = base[-MAX_NAME_LEN:]
+    return base
+
 
 # =========================
 # API de orquestación
@@ -187,6 +197,7 @@ def process_zip(
     params: Optional[Dict[str, Any]] = None,
     spectralon_txt_bytes: Optional[bytes] = None,
     spectralon_params_override: Optional[Dict[str, Any]] = None,
+    spectralon_filename: Optional[str] = None,  # <-- NUEVO
 ) -> bytes:
     defaults = _load_defaults(kind)
     cfg: Dict[str, Any] = {**defaults, **(params or {})}
@@ -202,7 +213,9 @@ def process_zip(
         if spectralon_txt_bytes:
             spec_dir = os.path.join(in_dir, "configs", "Spectralon")
             os.makedirs(spec_dir, exist_ok=True)
-            spec_path = os.path.join(spec_dir, "SRT-99-120.txt")
+            # nombre real normalizado si vino desde la interfaz
+            spec_name = _normalize_spectralon_filename(spectralon_filename)
+            spec_path = os.path.join(spec_dir, spec_name)
             with open(spec_path, "wb") as f:
                 f.write(spectralon_txt_bytes)
             cfg["spectralon_file"] = spec_path
@@ -408,7 +421,8 @@ def process_folder_to_zip(
         }
 
         meta_bytes = json.dumps(meta2, ensure_ascii=False, indent=2).encode("utf-8")
-        return _zip_dir_to_bytes(out_dir, extra_files=[("metadata.json", meta_bytes)]) 
+        return _zip_dir_to_bytes(out_dir, extra_files=[("metadata.json", meta_bytes)])
+
 
 
 
