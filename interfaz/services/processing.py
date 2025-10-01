@@ -152,4 +152,4 @@ def process_request_to_zip_response(request) -> HttpResponse:
     except Exception as e:
         # Mantener misma semántica de logging en sesión + HTTP 500
         request.session["log_resultado"] = f"❌ Error en procesamiento: {e}"
-        return HttpResponse(f"Error en procesamiento: {e}", status=500)
+        return HttpResponse(f"Error en procesamiento: {e}", status=500)    

@@ -13,6 +13,8 @@ import matplotlib.pyplot as plt
 from procesamiento.aux import aux_func_w as auxfunc
 
 
+
+
 def _spectralon_path() -> str:
     """
     Resuelve la ruta del archivo de calibración Spectralon dentro del paquete.
@@ -47,7 +49,10 @@ def _sorted_txt_files(meas_dir: str) -> List[str]:
         return int(match.group(1)) if match else 0
 
     return sorted(
-        [f for f in os.listdir(meas_dir) if f.lower().endswith(".txt")],
+        [
+            f for f in os.listdir(meas_dir)
+            if f.lower().endswith(".txt") and os.path.isfile(os.path.join(meas_dir, f))
+        ],
         key=extraer_num_final
     )
 
@@ -71,7 +76,8 @@ def run(input_dir: str, output_dir: str, config: Dict[str, Any]) -> Dict[str, An
     target_list: List[str] = config.get("target_list", [])
 
     # ---------- Spectralon ----------
-    spec_path = _spectralon_path()
+    # Prioriza el archivo provisto por config (subido por el usuario) y si no, usa el default del paquete.
+    spec_path = config.get("spectralon_file") or _spectralon_path()
     if not os.path.exists(spec_path):
         raise FileNotFoundError(f"No se encontró archivo de calibración: {spec_path}")
     spectralon_reflectance = np.array(auxfunc.read_spectralon_reflectance(spec_path))
@@ -202,3 +208,4 @@ if __name__ == "__main__":
         cfg = json.load(f)
     result = run(in_dir, out_dir, cfg)
     print(json.dumps(result, ensure_ascii=False, indent=2))
+
