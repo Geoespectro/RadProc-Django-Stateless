@@ -1,4 +1,4 @@
-# interfaz/views.py — STATeless (reemplazo completo)
+# interfaz/views.py — STATeless 
 
 import os
 import json
@@ -11,8 +11,8 @@ from django.http import HttpResponse
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 
-# Orquestador stateless
-from procesamiento.service import process_zip
+# Delegamos el procesamiento en el servicio (nuevo)
+from interfaz.services.processing import process_request_to_zip_response
 
 # === Utilidades locales ======================================================
 
@@ -82,88 +82,8 @@ def procesar(request):
     - Opcional: 'params' (JSON) con overrides generales (spectrum, meas_order, ...).
     - Compatibilidad: si existe 'spectralon_tmp_path' en sesión, lo usa y luego lo borra.
     """
-    if request.method != "POST":
-        return HttpResponse("Método no permitido", status=405)
-
-    tipo = (request.POST.get("tipo_medicion") or "").strip().lower()
-    if tipo not in ("agua", "suelo"):
-        return HttpResponse("Tipo de medición inválido. Use 'agua' o 'suelo'.", status=400)
-
-    up = request.FILES.get("zipfile")
-    if not up:
-        return HttpResponse("Debes adjuntar un archivo ZIP en el campo 'zipfile'.", status=400)
-
-    # Params generales
-    params_raw = request.POST.get("params") or request.POST.get("params_json") or ""
-    try:
-        params = json.loads(params_raw) if params_raw else {}
-        if not isinstance(params, dict):
-            params = {}
-    except Exception:
-        return HttpResponse("params inválido (debe ser JSON).", status=400)
-
-    # 🔧 Fusionar overrides guardados en sesión
-    all_over = request.session.get("config_overrides", {})
-    if isinstance(all_over, dict) and isinstance(all_over.get(tipo), dict):
-        for k, v in all_over[tipo].items():
-            params.setdefault(k, v)
-
-    # Overrides de Spectralon (opcional)
-    spectralon_txt_bytes = None
-    spec_file = request.FILES.get("spectralon_txt")
-    if spec_file:
-        max_mb = int(os.getenv("MAX_SPEC_MB", "2"))
-        if spec_file.size > max_mb * 1024 * 1024:
-            return HttpResponse(f"El archivo Spectralon supera {max_mb} MB.", status=400)
-        spectralon_txt_bytes = b"".join(chunk for chunk in spec_file.chunks())
-
-    spectralon_params_override = None
-    spec_params_raw = request.POST.get("spectralon_params") or ""
-    if spec_params_raw:
-        try:
-            spectralon_params_override = json.loads(spec_params_raw)
-            if not isinstance(spectralon_params_override, dict):
-                spectralon_params_override = None
-        except json.JSONDecodeError:
-            return HttpResponse("spectralon_params inválido (JSON).", status=400)
-
-    # Compatibilidad con flujo "cambiar_spectralon" / "editar_spectralon"
-    if spectralon_txt_bytes is None:
-        tmp_path = _session_pop(request, "spectralon_tmp_path")
-        if tmp_path and os.path.isfile(tmp_path):
-            try:
-                with open(tmp_path, "rb") as f:
-                    spectralon_txt_bytes = f.read()
-            except Exception:
-                spectralon_txt_bytes = None
-            try:
-                os.remove(tmp_path)
-            except Exception:
-                pass
-
-    # Ejecutar procesamiento
-    zip_bytes = b"".join(chunk for chunk in up.chunks())
-    try:
-        out_zip = process_zip(
-            zip_bytes=zip_bytes,
-            kind=tipo,
-            params=params,
-            spectralon_txt_bytes=spectralon_txt_bytes,
-            spectralon_params_override=spectralon_params_override,
-        )
-        request.session["zip_nombre"] = getattr(up, "name", "datos.zip")
-        request.session["zip_tipo"] = tipo
-        request.session["log_resultado"] = "✅ Procesamiento completado. Se descargó el ZIP."
-    except Exception as e:
-        request.session["log_resultado"] = f"❌ Error en procesamiento: {e}"
-        return HttpResponse(f"Error en procesamiento: {e}", status=500)
-
-    # Descargar ZIP
-    resp = HttpResponse(out_zip, content_type="application/zip")
-    resp["Content-Disposition"] = f'attachment; filename="resultados_{tipo}.zip"'
-    return resp
-
-
+    # Ahora delega todo en el servicio, sin cambiar la funcionalidad existente.
+    return process_request_to_zip_response(request)
 
 
 def _build_config_context(tipo: str) -> dict:
@@ -223,8 +143,6 @@ def vista_configuraciones(request):
         },
     }
     return render(request, "main/configuraciones.html", ctx)
-
-
 
 
 def guardar_config(request):
@@ -351,7 +269,6 @@ def guardar_spectralon(request):
     return HttpResponseRedirect(f"/configuraciones/?tipo={tipo_actual}")
 
 
-
 @csrf_exempt
 def cambiar_spectralon(request):
     """
@@ -395,6 +312,7 @@ def limpiar_sesion(request):
         request.session.flush()
         return HttpResponseRedirect("/")
     return HttpResponseRedirect("/")
+
 
 
 
