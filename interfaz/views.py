@@ -16,7 +16,8 @@ from interfaz.services.processing import process_request_to_zip_response
 
 # === Utilidades locales ======================================================
 
-BASE_DIR = Path(getattr(settings, "BASE_DIR", Path(__file__).resolve().parents[2]))
+BASE_DIR = Path(getattr(settings, "BASE_DIR", Path(__file__).resolve().parents[1]))
+
 PROC_DIR = BASE_DIR / "procesamiento"
 CONFIGS_DIR = PROC_DIR / "configs"
 SPECTRALON_DEFAULT = CONFIGS_DIR / "Spectralon" / "SRT-99-120.txt"
@@ -175,20 +176,28 @@ def guardar_config(request):
     except Exception:
         target_list = []
 
+    # ✅ Preservar overrides previos del mismo tipo y actualizar solo lo recibido
     over = request.session.get("config_overrides", {})
     if not isinstance(over, dict):
         over = {}
-    over[tipo] = {}
-    if spectrum is not None:
-        over[tipo]["spectrum"] = spectrum
-    if meas_order:
-        over[tipo]["meas_order"] = meas_order
-    if target_list:
-        over[tipo]["target_list"] = target_list
 
+    current = {}
+    if isinstance(over.get(tipo), dict):
+        current.update(over[tipo])
+
+    if spectrum is not None:
+        current["spectrum"] = spectrum
+    if (meas_order_raw or "").strip() != "":
+        current["meas_order"] = meas_order
+    if (target_list_raw or "").strip() != "":
+        current["target_list"] = target_list
+
+    over[tipo] = current
     request.session["config_overrides"] = over
+
     request.session["log_resultado"] = f"✅ Configuración de {tipo} aplicada temporalmente (próxima ejecución)."
     return HttpResponseRedirect(f"/configuraciones/?tipo={tipo}")
+
 
 
 def manual_usuario(request):

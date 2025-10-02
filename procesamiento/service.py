@@ -220,8 +220,13 @@ def process_zip(
                 f.write(spectralon_txt_bytes)
             cfg["spectralon_file"] = spec_path
 
+        # ✅ Fusión defensiva de spectralon_params
         if spectralon_params_override:
-            cfg.setdefault("spectralon_params", {}).update(spectralon_params_override)
+            base_params = cfg.get("spectralon_params")
+            if not isinstance(base_params, dict):
+                base_params = {}
+            base_params.update(spectralon_params_override)
+            cfg["spectralon_params"] = base_params
 
         # Fijar env y pasar rutas en config ANTES de importar el runner
         old_out = os.environ.get("OUTPUT_DIR")
@@ -302,6 +307,7 @@ def process_zip(
         return out_zip
 
 
+
 def process_folder_to_zip(
     input_dir: str,
     kind: Literal["agua", "suelo"],
@@ -342,8 +348,13 @@ def process_folder_to_zip(
                     d.write(chunk)
             cfg["spectralon_file"] = spec_path
 
+        # ✅ Fusión defensiva de spectralon_params
         if spectralon_params_override:
-            cfg.setdefault("spectralon_params", {}).update(spectralon_params_override)
+            base_params = cfg.get("spectralon_params")
+            if not isinstance(base_params, dict):
+                base_params = {}
+            base_params.update(spectralon_params_override)
+            cfg["spectralon_params"] = base_params
 
         old_out = os.environ.get("OUTPUT_DIR")
         old_in  = os.environ.get("INPUT_DIR")
@@ -422,6 +433,7 @@ def process_folder_to_zip(
 
         meta_bytes = json.dumps(meta2, ensure_ascii=False, indent=2).encode("utf-8")
         return _zip_dir_to_bytes(out_dir, extra_files=[("metadata.json", meta_bytes)])
+
 
 
 
