@@ -56,7 +56,7 @@
     </div>
 
     <div class="col-md-6 d-flex justify-content-between align-items-center">
-      <span class="text-muted" id="nombre-spectralon">
+      <span class="text-muted" id="nombre-spectralon" data-default="{{ nombre_spectralon }}">
         {{ nombre_spectralon }}
       </span>
 
@@ -79,7 +79,7 @@
     <textarea class="form-control mb-3" rows="5" readonly id="log-area">{{ log }}</textarea>
 
     <div class="d-flex justify-content-between gap-2 flex-wrap">
-      <form action="{% url 'limpiar_sesion' %}" method="post" class="m-0" onsubmit="sessionStorage.clear()">
+      <form action="{% url 'limpiar_sesion' %}" method="post" class="m-0" id="form-limpiar" onsubmit="sessionStorage.clear()">
         {% csrf_token %}
         <button type="submit" class="btn btn-outline-danger btn-sm">🧹 Limpiar</button>
       </form>
@@ -99,139 +99,8 @@
 {% endblock %}
 
 {% block extra_js %}
+<!-- Un único JS consolidado (sin inline para evitar duplicados/caché) -->
 <script src="{% static 'js/index.js' %}"></script>
-<script>
-  // === UI helpers ===
-  function setProcesando(isOn) {
-    const btn = document.getElementById('btn-procesar');
-    const form = document.getElementById('form-datos');
-    if (!btn || !form) return;
-    if (isOn) {
-      btn.disabled = true;
-      btn.textContent = 'Procesando…';
-      form.classList.add('opacity-75');
-    } else {
-      btn.disabled = false;
-      btn.textContent = 'Procesar y descargar';
-      form.classList.remove('opacity-75');
-    }
-  }
-
-
-
-  // === Manejo de Spectralon en el mismo form ===
-  document.addEventListener('DOMContentLoaded', function () {
-    const btn = document.getElementById('btn-cambiar-spectralon');
-    const input = document.getElementById('input-spectralon');
-    const nombre = document.getElementById('nombre-spectralon');
-    const tipoSel = document.getElementById('tipo-medicion');
-    const tipoHidden = document.getElementById('tipo-medicion-hidden');
-
-    if (btn && input) {
-      btn.addEventListener('click', () => input.click());
-    }
-    if (input && nombre) {
-      input.addEventListener('change', () => {
-        const f = input.files && input.files[0];
-        if (f) {
-          nombre.textContent = `Spectralon seleccionado: ${f.name} (solo esta ejecución)`;
-          nombre.classList.remove('text-muted');
-        } else {
-          nombre.textContent = "{{ nombre_spectralon }}";
-          nombre.classList.add('text-muted');
-        }
-      });
-    }
-    if (tipoSel && tipoHidden) {
-      tipoSel.addEventListener('change', () => {
-        tipoHidden.value = tipoSel.value || '';
-      });
-    }
-  });
-
-  // === Interceptar submit para usar fetch y detectar fin de procesamiento ===
-  document.addEventListener('DOMContentLoaded', function () {
-    const form = document.getElementById('form-datos');
-    if (!form) return;
-
-    form.addEventListener('submit', async function (ev) {
-      ev.preventDefault();
-
-      // Validación básica
-      const tipoHidden = document.getElementById('tipo-medicion-hidden');
-      if (!tipoHidden || !tipoHidden.value) {
-        appendLog('⚠️ Selecciona un tipo de medición (Agua o Suelo).');
-        return;
-      }
-
-      const fd = new FormData(form);
-      setProcesando(true);
-      appendLog('⏳ Iniciando procesamiento…');
-
-      try {
-        const resp = await fetch(form.action, {
-          method: 'POST',
-          body: fd
-          // CSRF no requerido: /procesar/ es csrf_exempt en el backend
-        });
-
-        if (!resp.ok) {
-          // Intentar extraer texto de error
-          const txt = await resp.text().catch(() => '');
-          appendLog(`❌ Error del servidor (${resp.status}). ${txt || ''}`.trim());
-          setProcesando(false);
-          return;
-        }
-
-        // Recibir ZIP como blob
-        const blob = await resp.blob();
-        // Nombre sugerido por cabecera o fallback
-        const dispo = resp.headers.get('Content-Disposition') || '';
-        const m = dispo.match(/filename="([^"]+)"/i);
-        const filename = m ? m[1] : 'resultados.zip';
-
-        // Disparar descarga
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        URL.revokeObjectURL(url);
-
-        // Log + sonido
-        appendLog('✅ Procesamiento completado. Descarga iniciada.');
-        if (typeof playDoneSound === 'function') {
-          playDoneSound();
-        }
-      } catch (err) {
-        appendLog(`❌ Error de red o del cliente: ${err}`);
-      } finally {
-        setProcesando(false);
-      }
-    });
-  });
-
-  // === Exportar log a archivo .txt ===
-  document.addEventListener('DOMContentLoaded', function () {
-    const btnExp = document.getElementById('btn-exportar-log');
-    const ta = document.getElementById('log-area');
-    if (btnExp && ta) {
-      btnExp.addEventListener('click', () => {
-        const blob = new Blob([ta.value || ''], { type: 'text/plain;charset=utf-8' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'radproc_log.txt';
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        URL.revokeObjectURL(url);
-      });
-    }
-  });
-</script>
 {% endblock %}
 
 

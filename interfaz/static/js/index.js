@@ -1,29 +1,40 @@
-// index.js — stateless
-// - Sin persistencia automática del LOG
-// - Limpieza total al "Limpiar"
-// - Spectralon: input dentro del form principal (sin modal/clave)
+// index.js — consolidado y idempotente
+// - Maneja selección de tipo, validaciones, submit via fetch + descarga, sonido fin
+// - Maneja ZIP y Spectralon (sin duplicar listeners)
+// - Log helpers (appendLog / clearLog / normalizeLogNewlines)
+// - Limpieza de estado en "Limpiar"
 
 document.addEventListener("DOMContentLoaded", function () {
-  const tipoSelect = document.getElementById("tipo-medicion");
-  const hiddenMedicion = document.getElementById("tipo-medicion-hidden");
-
-  // ZIP principal
-  const inputArchivo = document.querySelector('input[name="zipfile"]');
-  const formDatos = document.getElementById("form-datos");
-  const btnProcesar =
-    document.getElementById("btn-procesar") ||
-    (formDatos ? formDatos.querySelector('button[type="submit"]') : null);
+  // ======= Referencias DOM =======
+  const tipoSelect        = document.getElementById("tipo-medicion");
+  const hiddenMedicion    = document.getElementById("tipo-medicion-hidden");
+  const formDatos         = document.getElementById("form-datos");
+  const btnProcesar       = document.getElementById("btn-procesar") || (formDatos ? formDatos.querySelector('button[type="submit"]') : null);
+  const inputArchivo      = formDatos ? formDatos.querySelector('input[name="zipfile"]') : null;
 
   // UI auxiliares
-  const nombreSpan = document.getElementById("nombre-carpeta-datos");
-  const logArea = document.querySelector('textarea.form-control');
+  const nombreSpan        = document.getElementById("nombre-carpeta-datos");
+  const logArea           = document.getElementById('log-area');
 
-  // Spectralon (opcional, en el mismo form)
+  // Spectralon
   const btnCambiarSpectralon = document.getElementById("btn-cambiar-spectralon");
-  const inputSpectralon = document.getElementById("input-spectralon");
-  const nombreSpectralon = document.getElementById("nombre-spectralon");
+  const inputSpectralon      = document.getElementById("input-spectralon");
+  const nombreSpectralon     = document.getElementById("nombre-spectralon");
 
-  // --- Helpers UI ---
+  // ======= Helpers UI =======
+  function setProcesando(isOn) {
+    if (!btnProcesar || !formDatos) return;
+    if (isOn) {
+      btnProcesar.disabled = true;
+      btnProcesar.textContent = 'Procesando…';
+      formDatos.classList.add('opacity-75');
+    } else {
+      btnProcesar.disabled = false;
+      btnProcesar.textContent = 'Procesar y descargar';
+      formDatos.classList.remove('opacity-75');
+    }
+  }
+
   function setNombreArchivoOk(nombre) {
     if (!nombreSpan) return;
     if (nombre) {
@@ -51,7 +62,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if (v === "agua" || v === "suelo") tipoSelect.classList.add(v);
   }
 
-  // --- Estado inicial ---
+  // ======= Estado inicial =======
   if (hiddenMedicion && tipoSelect) hiddenMedicion.value = tipoSelect.value || "";
   aplicarColorSelect();
   habilitarCargaSiHayTipo();
@@ -71,8 +82,8 @@ document.addEventListener("DOMContentLoaded", function () {
     setNombreArchivoOk("");
   }
 
-  // --- Cambios de tipo ---
-  if (tipoSelect) {
+  // ======= Cambios de tipo =======
+  if (tipoSelect && !tipoSelect.dataset.bound) {
     tipoSelect.addEventListener("change", function () {
       const valor = this.value || "";
       if (hiddenMedicion) hiddenMedicion.value = valor;
@@ -87,10 +98,11 @@ document.addEventListener("DOMContentLoaded", function () {
         }
       }
     });
+    tipoSelect.dataset.bound = "1";
   }
 
-  // --- Interacción con input file (ZIP) ---
-  if (inputArchivo) {
+  // ======= Interacción con input file (ZIP) =======
+  if (inputArchivo && !inputArchivo.dataset.bound) {
     // Bloquear diálogo si no hay tipo
     inputArchivo.addEventListener("click", (e) => {
       const hayTipo = !!(tipoSelect && tipoSelect.value);
@@ -118,37 +130,17 @@ document.addEventListener("DOMContentLoaded", function () {
         setNombreArchivoOk("");
       }
     });
+    inputArchivo.dataset.bound = "1";
   }
 
-  // --- Validación al enviar ---
-  if (formDatos) {
-    formDatos.addEventListener("submit", function (e) {
-      const hayTipo = !!(tipoSelect && tipoSelect.value);
-      const tieneArchivo = inputArchivo && inputArchivo.files && inputArchivo.files.length > 0;
-
-      if (!hayTipo) {
-        e.preventDefault();
-        typeof mostrarToast === 'function'
-          ? mostrarToast("⚠️ Selecciona un tipo de medición antes de procesar.")
-          : alert("⚠️ Selecciona un tipo de medición antes de procesar.");
-        return;
-      }
-      if (!tieneArchivo) {
-        e.preventDefault();
-        typeof mostrarToast === 'function'
-          ? mostrarToast("⚠️ Debes seleccionar un archivo ZIP antes de procesar.")
-          : alert("⚠️ Debes seleccionar un archivo ZIP antes de procesar.");
-        setNombreArchivoRequerido("Debes seleccionar un archivo ZIP.");
-        return;
-      }
-    });
-  }
-
-  // === Spectralon en el mismo form (sin modal/clave) ===
-  // Guardas idempotentes para evitar doble binding si el script se inyecta dos veces
+  // ======= Spectralon (idempotente, sin doble apertura) =======
   if (btnCambiarSpectralon && !btnCambiarSpectralon.dataset.bound) {
     btnCambiarSpectralon.addEventListener("click", () => {
-      if (inputSpectralon) inputSpectralon.click();
+      if (inputSpectralon) {
+        // Fuerza que 'change' dispare aunque el usuario elija el mismo archivo
+        inputSpectralon.value = '';
+        inputSpectralon.click();
+      }
     });
     btnCambiarSpectralon.dataset.bound = "1";
   }
@@ -160,21 +152,100 @@ document.addEventListener("DOMContentLoaded", function () {
         nombreSpectralon.textContent = `Spectralon seleccionado: ${f.name} (solo esta ejecución)`;
         nombreSpectralon.classList.remove('text-muted');
       } else if (nombreSpectralon) {
-        // Volver al texto renderizado por el backend si se deselecciona
-        nombreSpectralon.textContent = nombreSpectralon.getAttribute('data-default') || "SRT-99-120.txt (por defecto)";
+        const def = nombreSpectralon.getAttribute('data-default') || "SRT-99-120.txt (por defecto)";
+        nombreSpectralon.textContent = def;
         nombreSpectralon.classList.add('text-muted');
       }
     });
     inputSpectralon.dataset.bound = "1";
   }
 
-  // ====== LIMPIAR: borra todo el estado del lado cliente antes de salir ======
-  (function () {
-    const formLimpiar = document.getElementById("form-limpiar") ||
-                        document.querySelector('form[action$="limpiar_sesion/"]');
+  // ======= Submit via fetch (descarga ZIP + sonido + logs) =======
+  if (formDatos && !formDatos.dataset.bound) {
+    formDatos.addEventListener("submit", async function (ev) {
+      ev.preventDefault();
 
-    if (!formLimpiar) return;
+      const hayTipo = !!(tipoSelect && tipoSelect.value);
+      const tieneArchivo = inputArchivo && inputArchivo.files && inputArchivo.files.length > 0;
 
+      if (!hayTipo) {
+        typeof mostrarToast === 'function'
+          ? mostrarToast("⚠️ Selecciona un tipo de medición antes de procesar.")
+          : alert("⚠️ Selecciona un tipo de medición antes de procesar.");
+        return;
+      }
+      if (!tieneArchivo) {
+        typeof mostrarToast === 'function'
+          ? mostrarToast("⚠️ Debes seleccionar un archivo ZIP antes de procesar.")
+          : alert("⚠️ Debes seleccionar un archivo ZIP antes de procesar.");
+        setNombreArchivoRequerido("Debes seleccionar un archivo ZIP.");
+        return;
+      }
+
+      const fd = new FormData(formDatos);
+      setProcesando(true);
+      appendLog('⏳ Iniciando procesamiento…');
+
+      try {
+        const resp = await fetch(formDatos.action, {
+          method: 'POST',
+          body: fd
+          // CSRF no requerido: /procesar/ es csrf_exempt en el backend
+        });
+
+        if (!resp.ok) {
+          const txt = await resp.text().catch(() => '');
+          appendLog(`❌ Error del servidor (${resp.status}). ${txt || ''}`.trim());
+          setProcesando(false);
+          return;
+        }
+
+        const blob = await resp.blob();
+        const dispo = resp.headers.get('Content-Disposition') || '';
+        const m = dispo.match(/filename="([^"]+)"/i);
+        const filename = m ? m[1] : 'resultados.zip';
+
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+
+        appendLog('✅ Procesamiento completado. Descarga iniciada.');
+        if (typeof playDoneSound === 'function') playDoneSound();
+      } catch (err) {
+        appendLog(`❌ Error de red o del cliente: ${err}`);
+      } finally {
+        setProcesando(false);
+      }
+    });
+    formDatos.dataset.bound = "1";
+  }
+
+  // ======= Exportar log =======
+  const btnExp = document.getElementById('btn-exportar-log');
+  if (btnExp && logArea && !btnExp.dataset.bound) {
+    btnExp.addEventListener('click', () => {
+      const blob = new Blob([logArea.value || ''], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'radproc_log.txt';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    });
+    btnExp.dataset.bound = "1";
+  }
+
+  // ======= Limpiar (reseteo cliente antes del flush de sesión) =======
+  const formLimpiar = document.getElementById("form-limpiar") ||
+                      document.querySelector('form[action$="limpiar_sesion/"]');
+  if (formLimpiar && !formLimpiar.dataset.bound) {
     formLimpiar.addEventListener("submit", function () {
       try {
         sessionStorage.clear();
@@ -189,24 +260,23 @@ document.addEventListener("DOMContentLoaded", function () {
         if (logArea) logArea.value = "";
         if (inputSpectralon && nombreSpectralon) {
           inputSpectralon.value = "";
-          nombreSpectralon.textContent = "SRT-99-120.txt (por defecto)";
+          const def = nombreSpectralon.getAttribute('data-default') || "SRT-99-120.txt (por defecto)";
+          nombreSpectralon.textContent = def;
           nombreSpectralon.classList.add('text-muted');
         }
       } catch (e) {
         console.warn("No se pudo limpiar completamente el estado local:", e);
       }
-      // el submit continúa y el backend hace request.session.flush()
+      // El submit continúa y el backend hace request.session.flush()
     });
-  })();
+    formLimpiar.dataset.bound = "1";
+  }
 });
 
-
-// === Helpers de LOG en pantalla (inicio) ===
+// ======= Helpers de LOG en pantalla =======
 (function () {
-  // Usa un id fijo para no confundir con otros textareas
   const getLogEl = () => document.getElementById('log-area');
 
-  // Agrega una línea con timestamp y salto REAL de línea
   function appendLog(msg) {
     const el = getLogEl();
     if (!el) return;
@@ -216,12 +286,10 @@ document.addEventListener("DOMContentLoaded", function () {
       hour12: false
     });
     const line = `[${ts}] ${msg}`;
-    el.value = (el.value ? el.value + '\n' : '') + line;  // 👈 '\n' real
-    // Autoscroll al final
+    el.value = (el.value ? el.value + '\n' : '') + line;
     el.scrollTop = el.scrollHeight;
   }
 
-  // Reemplaza \n literales mal impresas (por si vienen de render del backend)
   function normalizeLogNewlines() {
     const el = getLogEl();
     if (!el) return;
@@ -229,18 +297,16 @@ document.addEventListener("DOMContentLoaded", function () {
     el.scrollTop = el.scrollHeight;
   }
 
-  // Limpia el log
   function clearLog() {
     const el = getLogEl();
     if (el) el.value = '';
   }
 
-  // Exponer global para poder llamarlo desde otros scripts
   window.appendLog = appendLog;
   window.clearLog = clearLog;
   window.normalizeLogNewlines = normalizeLogNewlines;
 
-  // Normaliza al cargar la página por si el template puso "\n" como texto
   document.addEventListener('DOMContentLoaded', normalizeLogNewlines);
 })();
+
 
