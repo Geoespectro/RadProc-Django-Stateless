@@ -436,6 +436,26 @@ def process_folder_to_zip(
 
 
 
+def run_processing_from_json_file(kind: Literal["agua", "suelo"], config_path: str) -> Dict[str, Any]:
+    """
+    Ejecuta el procesamiento usando un archivo de configuración JSON,
+    útil para pruebas unitarias sin necesidad de ZIPs ni interfaz.
+    """
+    import json
+
+    if not os.path.isfile(config_path):
+        raise FileNotFoundError(f"No se encontró el archivo de configuración: {config_path}")
+    with open(config_path, "r", encoding="utf-8") as f:
+        config_data = json.load(f)
+
+    runner = _load_runner(kind)
+
+    tmp_in = config_data.get("input_dir") or "/tmp/input"
+    tmp_out = config_data.get("output_dir") or "/tmp/output"
+    os.makedirs(tmp_in, exist_ok=True)
+    os.makedirs(tmp_out, exist_ok=True)
+
+    return runner(input_dir=tmp_in, output_dir=tmp_out, config=config_data)
 
 
 

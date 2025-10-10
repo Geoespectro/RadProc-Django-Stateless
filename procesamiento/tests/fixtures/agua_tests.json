@@ -1,0 +1,7 @@
+{
+  "input_dir": "procesamiento/tests/fixtures/data/agua",
+  "output_dir": "/tmp/output_test_agua",
+  "spectrum": 10,
+  "meas_order": ["spectralon", "target"],
+  "some_param": 42
+}

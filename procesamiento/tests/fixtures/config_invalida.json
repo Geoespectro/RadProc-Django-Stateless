@@ -1,0 +1,5 @@
+{
+  "input_dir": "procesamiento/tests/fixtures/data/agua",
+  "output_dir": "/tmp/test_out"
+  
+}
