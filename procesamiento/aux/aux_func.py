@@ -14,111 +14,131 @@ from typing import List, Tuple, Dict, Any
 # =============================================================================
 # Lectura robusta de archivos .txt de espectrorradiómetro
 # =============================================================================
-def read_file(file_path: str) -> Dict[str, Any]:
+def read_file(file_path):
     """
-    Lee un archivo espectral ASD (.txt), separa encabezado y datos,
-    y retorna dict con: {'metadata', 'wavelengths', 'radiances'}.
-    - Tolerante a UTF-8, CRLF y decimales con coma.
+    Lee un archivo espectral ASD (.txt), separa encabezado y datos con tolerancia,
+    y retorna dict con metadatos, longitudes de onda y radiancias.
+    - Tolera ausencia de '\n\n' localizando la primera línea de datos.
+    - Tolera columnas extra en las filas numéricas (toma la 2ª como valor).
+    - Mantiene búsqueda de metadatos por substring (orden indiferente).
     """
-    with open(file_path, 'r', encoding='utf-8', errors='replace') as f:
-        content = f.read().replace('\r\n', '\n')
+    with open(file_path, 'r') as f:
+        content = f.read()
 
-    # Separar encabezado y datos (dos saltos de línea, tolerando espacios)
-    parts = re.split(r"\n\s*\n", content, maxsplit=1)
-    if len(parts) < 2:
-        # No encontramos separador claro; abortamos con error explícito
-        raise ValueError(f"Archivo mal formateado (sin separador de encabezado): {file_path}")
-    header, content = parts
+    lines = content.splitlines()
+    # 1) Detectar índice donde empiezan los datos (primera línea que arranca con dígitos)
+    data_start = None
+    for i, ln in enumerate(lines):
+        if ln.strip() and re.match(r'^\d+', ln.strip()):
+            data_start = i
+            break
+    if data_start is None:
+        raise ValueError(f"No se detectaron filas de datos numéricos en: {file_path}")
 
-    metadata: Dict[str, Any] = {}
+    # 2) Header = todo antes de la primera línea numérica (tenga o no '\n\n')
+    header_lines = lines[:data_start]
+    data_lines = lines[data_start:]
+
+    # 3) Metadatos (mismo criterio que tenías)
+    header = "\n".join(header_lines)
+    metadata = {}
     for line in header.split('\n'):
-        line = line.strip()
-        if not line:
-            continue
-
-        try:
-            if 'instrument number was' in line:
-                metadata['Instrument ID'] = line.split('was ', 1)[1].strip()
-            elif 'New ASD spectrum file: Program version' in line:
-                # "New ASD spectrum file: Program version = X.Y"
-                metadata['Program version'] = line.split('= ', 1)[1].strip()
-            elif 'Spectrum saved' in line:
-                metadata['Spectrum saved'] = line.split(': ', 1)[1].strip()
-            elif 'VNIR integration time' in line:
-                metadata['VNIR integration time'] = int(line.split(': ', 1)[1].strip())
-            elif 'VNIR channel 1 wavelength' in line:
-                parts2 = line.split('= ', 1)[1].split()
-                # último valor suele ser el "step"
-                metadata['Wavelength step'] = float(parts2[-1].replace(',', '.'))
-            elif 'There were' in line and 'samples' in line:
-                # "There were N samples ..."
-                mid = line.split('There were', 1)[1]
-                num = mid.split('samples', 1)[0].strip()
-                if num.isdigit():
-                    metadata['Samples per data'] = int(num)
-            elif 'xmin' in line:
-                metadata['xmin'] = float(line.split('= ', 1)[1].split()[0].replace(',', '.'))
-            elif 'xmax' in line:
-                metadata['xmax'] = float(line.split('= ', 1)[1].split()[0].replace(',', '.'))
-            elif 'ymin' in line:
-                metadata['ymin'] = float(line.split('= ', 1)[1].split()[0].replace(',', '.'))
-            elif 'ymax' in line:
-                metadata['ymax'] = float(line.split('= ', 1)[1].split()[0].replace(',', '.'))
-            elif 'SWIR1 gain was' in line:
-                parts2 = line.split('was ', 1)[1].split()
-                if len(parts2) >= 3:
-                    metadata['SWIR1 gain'] = float(parts2[0].replace(',', '.'))
-                    metadata['SWIR1 offset'] = float(parts2[2].replace(',', '.'))
-            elif 'SWIR2 gain was' in line:
-                parts2 = line.split('was ', 1)[1].split()
-                if len(parts2) >= 3:
-                    metadata['SWIR2 gain'] = float(parts2[0].replace(',', '.'))
-                    metadata['SWIR2 offset'] = float(parts2[2].replace(',', '.'))
-            elif 'Join between VNIR and SWIR1 was' in line:
-                metadata['VNIR-SWIR1 join'] = line.split('was ', 1)[1].split()[0] + ' nm'
-            elif 'Join between SWIR1 and SWIR2 was' in line:
-                metadata['SWIR1-SWIR2 join'] = line.split('was ', 1)[1].split()[0] + ' nm'
-            elif 'VNIR dark signal subtracted' in line:
-                metadata['VNIR dark signal subtracted'] = True
-            elif 'dark measurements taken' in line:
-                # "... dark measurements taken N ..."
-                tail = line.split('dark measurements taken ', 1)[1].split()
-                if tail and tail[0].isdigit():
-                    metadata['Dark measurements'] = int(tail[0])
-            elif 'DCC value was' in line:
-                metadata['DCC value'] = float(line.split('was ', 1)[1].strip().replace(',', '.'))
-            elif 'There was no foreoptic attached' in line:
-                metadata['Foreoptic'] = 'None'
-            elif 'GPS-Latitude is' in line:
-                metadata['GPS-Latitude'] = line.split('is ', 1)[1].strip()
-            elif 'GPS-Longitude is' in line:
-                metadata['GPS-Longitude'] = line.split('is ', 1)[1].strip()
-            elif 'GPS-Altitude is' in line:
-                metadata['GPS-Altitude'] = float(line.split('is ', 1)[1].split(',')[0].replace(',', '.'))
-            elif 'GPS-UTC is' in line:
-                metadata['GPS-UTC'] = line.split('is ', 1)[1].strip()
-        except Exception:
-            # En caso de línea rara, seguimos sin romper el parseo completo
-            continue
-
-    wavelengths: List[float] = []
-    radiances: List[float] = []
-    for line in content.split('\n'):
-        line = line.strip()
-        if not line:
-            continue
-        # línea de datos: "wavelength radiance"
-        if re.match(r'^\d', line):
-            parts2 = line.split()
-            if len(parts2) >= 2:
-                wl = parts2[0]
-                rad = parts2[1]
+        if 'instrument number was' in line:
+            metadata['Instrument ID'] = line.split('was ')[1].strip()
+        elif 'New ASD spectrum file: Program version' in line:
+            metadata['Program version'] = line.split('= ')[1].strip() if '= ' in line else line.split()[-1]
+        elif 'Spectrum saved' in line:
+            metadata['Spectrum saved'] = line.split(': ', 1)[1].strip() if ': ' in line else line.split(':',1)[1].strip()
+        elif 'VNIR integration time' in line:
+            try:
+                metadata['VNIR integration time'] = int(line.split(': ', 1)[1])
+            except Exception:
+                pass
+        elif 'VNIR channel 1 wavelength' in line:
+            try:
+                parts = line.split('= ', 1)[1].split()
+                metadata['Wavelength step'] = int(parts[-1])
+            except Exception:
+                pass
+        elif 'There were' in line and 'samples' in line:
+            try:
+                metadata['Samples per data'] = int(line.split('There were')[1].split('samples')[0])
+            except Exception:
+                pass
+        elif 'xmin' in line:
+            try: metadata['xmin'] = int(line.split('= ',1)[1].split()[0])
+            except Exception: pass
+        elif 'xmax' in line:
+            try: metadata['xmax'] = int(line.split('= ',1)[1].split()[0])
+            except Exception: pass
+        elif 'ymin' in line:
+            try: metadata['ymin'] = int(line.split('= ',1)[1].split()[0])
+            except Exception: pass
+        elif 'ymax' in line:
+            try: metadata['ymax'] = int(line.split('= ',1)[1].split()[0])
+            except Exception: pass
+        elif 'SWIR1 gain was' in line:
+            parts = line.split('was ')[1].split()
+            if len(parts) >= 3:
                 try:
-                    wavelengths.append(float(wl.replace(',', '.')))
-                    radiances.append(float(rad.replace(',', '.')))
-                except ValueError:
-                    # si hay valores corruptos, los saltamos
-                    continue
+                    metadata['SWIR1 gain'] = int(parts[0]); metadata['SWIR1 offset'] = int(parts[2])
+                except Exception: pass
+        elif 'SWIR2 gain was' in line:
+            parts = line.split('was ')[1].split()
+            if len(parts) >= 3:
+                try:
+                    metadata['SWIR2 gain'] = int(parts[0]); metadata['SWIR2 offset'] = int(parts[2])
+                except Exception: pass
+        elif 'Join between VNIR and SWIR1 was' in line:
+            try: metadata['VNIR-SWIR1 join'] = line.split('was ')[1].split()[0] + ' nm'
+            except Exception: pass
+        elif 'Join between SWIR1 and SWIR2 was' in line:
+            try: metadata['SWIR1-SWIR2 join'] = line.split('was ')[1].split()[0] + ' nm'
+            except Exception: pass
+        elif 'VNIR dark signal subtracted' in line:
+            metadata['VNIR dark signal subtracted'] = True
+        elif 'dark measurements taken' in line:
+            try:
+                parts = line.split('dark measurements taken ')[1].split()
+                if parts[0].isdigit():
+                    metadata['Dark measurements'] = int(parts[0])
+            except Exception:
+                pass
+        elif 'DCC value was' in line:
+            try: metadata['DCC value'] = int(line.split('was ')[1])
+            except Exception: pass
+        elif 'There was no foreoptic attached' in line:
+            metadata['Foreoptic'] = 'None'
+        elif 'GPS-Latitude is' in line:
+            metadata['GPS-Latitude'] = line.split('is ',1)[1]
+        elif 'GPS-Longitude is' in line:
+            metadata['GPS-Longitude'] = line.split('is ',1)[1]
+        elif 'GPS-Altitude is' in line:
+            try: metadata['GPS-Altitude'] = float(line.split('is ',1)[1].split(',')[0])
+            except Exception: pass
+        elif 'GPS-UTC is' in line:
+            metadata['GPS-UTC'] = line.split('is ',1)[1]
+
+    # 4) Datos numéricos (tolerantes)
+    wavelengths = []
+    radiances = []
+    for line in data_lines:
+        s = line.strip()
+        if not s or not re.match(r'^\d+', s):
+            continue
+        parts = s.split()
+        try:
+            wl = float(parts[0])
+            # Tomar la 2ª columna como valor; reemplazar coma por punto
+            rad_token = parts[1].replace(',', '.')
+            val = float(rad_token)
+        except Exception:
+            continue  # línea rara → ignorar
+        wavelengths.append(wl)
+        radiances.append(val)
+
+    if not wavelengths:
+        raise ValueError(f"No se extrajeron datos numéricos en: {file_path}")
 
     return {'metadata': metadata, 'wavelengths': wavelengths, 'radiances': radiances}
 

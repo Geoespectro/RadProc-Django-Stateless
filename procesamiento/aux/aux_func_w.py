@@ -10,27 +10,51 @@ import matplotlib.pyplot as plt
 # Lectura robusta de archivos .txt de espectrorradiómetro
 # =============================================================================
 def read_file(file_path):
+    """
+    Lectura tolerante:
+    - Detecta inicio de datos por primera línea que arranca con dígitos.
+    - No requiere '\n\n' estricto.
+    - Tolera columnas extra (usa 2ª como valor).
+    """
     with open(file_path, 'r') as f:
-        content = f.read()
-    if '\n\n' not in content:
-        raise ValueError(f"Archivo mal formateado (falta separador '\\n\\n'): {file_path}")
-    header, content = content.split('\n\n', 1)
+        lines = f.read().splitlines()
+
+    data_start = None
+    for i, ln in enumerate(lines):
+        if ln.strip() and re.match(r'^\d+', ln.strip()):
+            data_start = i
+            break
+    if data_start is None:
+        raise ValueError(f"Archivo mal formateado (no se encuentran filas numéricas): {file_path}")
+
+    header_lines = lines[:data_start]
+    data_lines = lines[data_start:]
 
     metadata = {}
-    for line in header.split('\n'):
+    for line in header_lines:
         if 'instrument number was' in line:
-            metadata['Instrument ID'] = line.split('was ')[1].strip()
+            metadata['Instrument ID'] = line.split('was ', 1)[1].strip()
         elif 'Spectrum saved' in line:
-            metadata['Spectrum saved'] = line.split(': ')[1].strip()
+            metadata['Spectrum saved'] = line.split(': ', 1)[1].strip() if ': ' in line else line.split(':',1)[1].strip()
 
     wavelengths = []
     radiances = []
-    for line in content.split('\n'):
-        line = line.strip()
-        if line and re.match(r'^\d+', line):
-            wl, rad = line.split()
-            wavelengths.append(float(wl))
-            radiances.append(float(rad.replace(',', '.')))
+    for line in data_lines:
+        s = line.strip()
+        if not s or not re.match(r'^\d+', s):
+            continue
+        parts = s.split()
+        try:
+            wl = float(parts[0])
+            rad_token = parts[1].replace(',', '.')
+            rad = float(rad_token)
+        except Exception:
+            continue
+        wavelengths.append(wl)
+        radiances.append(rad)
+
+    if not wavelengths:
+        raise ValueError(f"No se extrajeron datos numéricos en: {file_path}")
 
     return {'metadata': metadata, 'wavelengths': wavelengths, 'radiances': radiances}
 
