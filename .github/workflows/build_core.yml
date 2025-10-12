@@ -1,0 +1,29 @@
+name: 🧱 Build Core Container
+
+on:
+  push:
+    branches:
+      - feat/sonido-descarga-zip
+  pull_request:
+    branches:
+      - feat/sonido-descarga-zip
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🧩 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🐍 Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: 🐳 Build Docker image (RadProc Core)
+        run: |
+          docker build -f docker/core/Dockerfile -t radproc-core .
+
+      - name: ✅ Validate build
+        run: |
+          docker run --rm radproc-core
