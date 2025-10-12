@@ -2,110 +2,118 @@
    config.css – Estilos para configuraciones.html
    ========================================== */
 
-/* === CONTENEDOR PRINCIPAL === */
+/* Contenedor “ventana” */
 .ventana-config {
-  background-color: #f6fbff;
+  background: var(--c-card);
+  color: var(--c-text);
   padding: 30px;
   border-radius: 10px;
-  box-shadow: 0 0 10px rgba(0, 100, 150, 0.1);
-  max-width: 800px;
+  box-shadow: 0 0 10px rgba(0, 100, 150, 0.08);
+  max-width: 900px;
   margin: auto;
+  border: 1px solid var(--c-border);
 }
 
-/* === SELECT DE TIPO === */
-#tipo-config {
-  transition: all 0.3s ease;
-}
+/* Select tipo de configuración (el JS/plantilla añade .agua | .suelo | .spectralon)
+   Los colores por tipo están CENTRALIZADOS en base.css para evitar duplicados. */
+#tipo-config { transition: all .3s ease; }
 
-/* Colores dinámicos según tipo seleccionado */
-select.form-select.agua {
-  background-color: #ccefff;
-  border-color: #00aaff;
-  color: #003344;
-}
-
-/* Opciones desplegables NO heredarán el color de la caja */
-select.form-select.agua option {
-  background-color: #fff !important;
-  color: #003344;
-}
-
-select.form-select.suelo {
-  background-color: #d6f5d6;
-  border-color: #66cc66;
-  color: #003300;
-}
-
-select.form-select.suelo option {
-  background-color: #fff !important;
-  color: #003300;
-}
-
-select.form-select.spectralon {
-  background-color: #fff4b2;
-  border-color: #e6b800;
-  color: #665200;
-}
-
-select.form-select.spectralon option {
-  background-color: #fff !important;
-  color: #665200;
-}
-
-
-
-
-/* === TABLA DE PARÁMETROS === */
-table {
-  margin-top: 20px;
-  border-collapse: collapse;
-}
-
-table th,
-table td {
-  border: 1px solid #ccc;
+/* Tabla de parámetros */
+table { margin-top: 20px; border-collapse: collapse; width: 100%; }
+table th, table td {
+  border: 1px solid var(--c-border);
   padding: 10px;
   vertical-align: middle;
 }
 
-/* === INPUTS DINÁMICOS EN TABLA === */
+/* Inputs dentro de la tabla */
 table input[type="text"] {
   width: 100%;
   padding: 6px 10px;
-  border: 1px solid #bbb;
+  border: 1px solid var(--c-border);
   border-radius: 6px;
+  background: var(--c-card);
+  color: var(--c-text);
 }
 
-/* === BOTONES DE GUARDAR Y CERRAR === */
+/* Botonera inferior */
 .botones-config {
   margin-top: 20px;
   display: flex;
   justify-content: flex-end;
   gap: 10px;
 }
-
 .botones-config button:disabled {
-  background-color: #f0f0f0;
+  background: #f0f0f0;
   color: #999;
   cursor: not-allowed;
 }
 
-/* === RESPONSIVE === */
+/* Responsive */
 @media (max-width: 768px) {
-  .ventana-config {
-    padding: 20px;
-  }
-
-  .botones-config {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .botones-config button {
-    width: 100%;
-  }
+  .ventana-config { padding: 20px; }
+  .botones-config { flex-direction: column; align-items: stretch; }
+  .botones-config button { width: 100%; }
 }
 
 
+/* =======================
+   Dark mode: modal editor
+   (meas_order / target_list)
+   ======================= */
+
+body.modo-oscuro .modal-content {
+  background-color: #151a1f;     /* panel oscuro */
+  color: #dbe5ef;                /* texto base legible */
+  border: 1px solid #2b333b;
+}
+
+body.modo-oscuro .modal-header,
+body.modo-oscuro .modal-footer {
+  border-color: #2b333b;         /* líneas del modal */
+  background: transparent;
+}
+
+/* Título del modal (el H5 que veías gris) */
+body.modo-oscuro .modal-title {
+  color: #eaf2fa !important;
+  font-weight: 600;
+}
+
+/* Botón de cerrar (X) visible en oscuro */
+body.modo-oscuro .btn-close {
+  filter: invert(1) brightness(1.6);
+  opacity: .9;
+}
+
+/* Caja de ayuda dentro del modal (alert-secondary) */
+body.modo-oscuro #editor-help.alert.alert-secondary {
+  background: rgba(255,255,255,.06);
+  color: #e1e7ef;
+  border-color: #3a444e;
+}
+
+/* Área de edición (textarea) */
+body.modo-oscuro #editorTextarea.form-control {
+  background: #0f1418;
+  color: #e8eef5;
+  border-color: #3a444e;
+  caret-color: #ffffff;
+}
+
+/* Pie de feedback del editor (pequeño texto debajo) */
+body.modo-oscuro #editorFeedback {
+  color: #b8c4d0;
+}
+
+/* Botones del modal se ven bien sobre el fondo */
+body.modo-oscuro .modal-footer .btn-primary {
+  box-shadow: none;
+}
+body.modo-oscuro .modal-footer .btn-secondary {
+  background: #384149;
+  border-color: #384149;
+  color: #e6eef6;
+}
 
 

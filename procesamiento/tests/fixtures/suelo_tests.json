@@ -1,0 +1,8 @@
+{
+  "input_dir": "procesamiento/tests/fixtures/data/suelo",
+  "output_dir": "/tmp/output_test_suelo",
+  "spectrum": 10,
+  "meas_order": ["spectralon", "target"],
+  "some_param": 42
+}
+

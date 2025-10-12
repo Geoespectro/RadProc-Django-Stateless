@@ -31,7 +31,7 @@
   <!-- ZIP principal -->
   <div class="input-group">
     <input type="file" name="zipfile" accept=".zip" class="form-control" required>
-    <button type="submit" class="btn btn-primary">Procesar y descargar</button>
+    <button type="submit" class="btn btn-primary" id="btn-procesar">Procesar y descargar</button>
   </div>
 
   <!-- Mensaje visual debajo del input file -->
@@ -56,11 +56,11 @@
     </div>
 
     <div class="col-md-6 d-flex justify-content-between align-items-center">
-      <span class="text-muted" id="nombre-spectralon">
+      <span class="text-muted" id="nombre-spectralon" data-default="{{ nombre_spectralon }}">
         {{ nombre_spectralon }}
       </span>
 
-      <!-- Ahora el input va DENTRO del form principal -->
+      <!-- Input va DENTRO del form principal -->
       <button type="button" class="btn btn-outline-primary btn-sm m-0" id="btn-cambiar-spectralon">
         Cambiar…
       </button>
@@ -76,17 +76,17 @@
 <!-- === Log de procesamiento y acciones === -->
 <div class="position-relative">
   <div class="mb-4">
-    <textarea class="form-control mb-3" rows="5" readonly>{{ log }}</textarea>
+    <textarea class="form-control mb-3" rows="5" readonly id="log-area">{{ log }}</textarea>
 
     <div class="d-flex justify-content-between gap-2 flex-wrap">
-      <form action="{% url 'limpiar_sesion' %}" method="post" class="m-0" onsubmit="sessionStorage.clear()">
+      <form action="{% url 'limpiar_sesion' %}" method="post" class="m-0" id="form-limpiar" onsubmit="sessionStorage.clear()">
         {% csrf_token %}
         <button type="submit" class="btn btn-outline-danger btn-sm">🧹 Limpiar</button>
       </form>
 
       <div class="d-flex gap-2 flex-wrap">
-        <button type="button" class="btn btn-success btn-sm">Exportar log</button>
-        <!-- ⚠️ El botón de descargar resultados fue eliminado: el ZIP se entrega al procesar -->
+        <button type="button" class="btn btn-success btn-sm" id="btn-exportar-log">Exportar log</button>
+        <!-- ⚠️ Botón de descargar resultados eliminado: el ZIP se entrega al procesar -->
       </div>
     </div>
   </div>
@@ -99,32 +99,8 @@
 {% endblock %}
 
 {% block extra_js %}
+<!-- Un único JS consolidado (sin inline para evitar duplicados/caché) -->
 <script src="{% static 'js/index.js' %}"></script>
-<script>
-  // Integración mínima para Spectralon en el mismo form:
-  document.addEventListener('DOMContentLoaded', function () {
-    const btn = document.getElementById('btn-cambiar-spectralon');
-    const input = document.getElementById('input-spectralon');
-    const nombre = document.getElementById('nombre-spectralon');
-
-    if (btn && input) {
-      btn.addEventListener('click', () => input.click());
-    }
-    if (input && nombre) {
-      input.addEventListener('change', () => {
-        const f = input.files && input.files[0];
-        if (f) {
-          nombre.textContent = `Spectralon seleccionado: ${f.name} (solo esta ejecución)`;
-          nombre.classList.remove('text-muted');
-        } else {
-          // Vuelve al texto que renderizó el backend
-          nombre.textContent = "{{ nombre_spectralon }}";
-          nombre.classList.add('text-muted');
-        }
-      });
-    }
-  });
-</script>
 {% endblock %}
 
 

@@ -12,6 +12,32 @@ import matplotlib.pyplot as plt
 
 from procesamiento.aux import aux_func as auxfunc
 
+def _write_processing_info(out_folder: str, spec_path: str, config: dict,
+                           spectrum: int, meas_order: list,
+                           ref_error_method: str, rad_plot: int, ref_plot: int) -> None:
+    import hashlib, json, os
+    sha = ""
+    try:
+        with open(spec_path, "rb") as f:
+            sha = hashlib.sha256(f.read()).hexdigest()
+    except Exception:
+        pass
+    info = {
+        "spectralon_file": spec_path,
+        "spectralon_sha256": sha,
+        "params_effective": {
+            "spectrum": spectrum,
+            "meas_order": meas_order,
+            "ref_error_method": ref_error_method,
+            "rad_plot": rad_plot,
+            "ref_plot": ref_plot
+        }
+    }
+    p = os.path.join(out_folder, "processing_info.json")
+    with open(p, "w", encoding="utf-8") as f:
+        json.dump(info, f, ensure_ascii=False, indent=2)
+
+
 
 def _spectralon_path() -> str:
     base_dir = os.path.dirname(os.path.dirname(__file__))  # .../procesamiento
@@ -35,7 +61,10 @@ def _sorted_txt_files(meas_dir: str) -> List[str]:
         return int(match.group(1)) if match else 0
 
     return sorted(
-        [f for f in os.listdir(meas_dir) if f.lower().endswith(".txt")],
+        [
+            f for f in os.listdir(meas_dir)
+            if f.lower().endswith(".txt") and os.path.isfile(os.path.join(meas_dir, f))
+        ],
         key=extraer_num_final
     )
 
@@ -55,7 +84,8 @@ def run(input_dir: str, output_dir: str, config: Dict[str, Any]) -> Dict[str, An
     target_list: List[str] = config.get("target_list", [])
 
     # ---------- Spectralon ----------
-    spec_path = _spectralon_path()
+    # Prioriza el espectralon provisto por config; si no, usa el default del paquete.
+    spec_path = config.get("spectralon_file") or _spectralon_path()
     if not os.path.exists(spec_path):
         raise FileNotFoundError(f"No se encontró archivo de calibración: {spec_path}")
     spectralon_reflectance = np.array(auxfunc.read_spectralon_reflectance(spec_path))
@@ -168,3 +198,4 @@ if __name__ == "__main__":
         cfg = json.load(f)
     result = run(in_dir, out_dir, cfg)
     print(json.dumps(result, ensure_ascii=False, indent=2))
+
