@@ -1,6 +1,18 @@
 {% extends 'main/base.html' %}
 {% load static %}
 
+{# ============================================================================
+  configuraciones.html — Página de configuración de RadProc WEB
+  ---------------------------------------------------------------------------
+  Contiene:
+    - Selector de tipo (agua, suelo, spectralon)
+    - Tabla editable de parámetros (spectrum, meas_order, target_list)
+    - Modal para editar listas en formato JSON o coma-separado
+  JS asociado: static/js/config.js
+  CSS asociado: static/css/config.css
+============================================================================ #}
+
+
 {% block title %}Configuraciones | RadProc{% endblock %}
 
 {% block extra_css %}

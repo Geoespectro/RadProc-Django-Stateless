@@ -1,0 +1,252 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Guía Rápida de Usuario — RadProc WEB</title>
+  <link rel="stylesheet" href="{% static 'docs/guia_usuario.css' %}">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+
+<body>
+  <div class="container">
+    <h1>RadProc WEB — Procesador espectral agua/suelo</h1>
+    <p><strong>Guía rápida de usuario — Versión 1.2 (2025)</strong></p>
+
+    <hr>
+
+    <h2>1. Propósito y alcance</h2>
+    <p>
+      <strong>RadProc WEB</strong> es una herramienta desarrollada por la
+      <strong>Comisión Nacional de Actividades Espaciales (CONAE)</strong>
+      para el procesamiento espectral de mediciones radiométricas obtenidas con radiómetros de campo.
+      Permite gestionar campañas de <em>agua</em> y <em>suelo</em> mediante una interfaz web moderna,
+      automatizando la conversión de radiancias a reflectancias, el control de configuraciones
+      y la generación de productos con trazabilidad completa.
+    </p>
+
+    <div class="tip">
+      <strong>Objetivo:</strong> ofrecer una plataforma unificada, reproducible y validada
+      para el procesamiento espectral, garantizando coherencia entre los datos de entrada,
+      parámetros configurados y resultados exportados.
+    </div>
+
+    <hr>
+
+    <h2>2. Flujo general de operación</h2>
+    <p>
+      El flujo básico de trabajo recomendado en RadProc WEB es el siguiente:
+    </p>
+    <ol>
+      <li><strong>Seleccionar el tipo de medición</strong> (<em>Agua</em> o <em>Suelo</em>).</li>
+      <li>Ingresar a <strong>Configuraciones</strong> para verificar o ajustar parámetros.</li>
+      <li>Regresar a la pantalla principal y <strong>cargar el archivo ZIP</strong> de datos.</li>
+      <li>Opcionalmente, adjuntar un <strong>Spectralon de referencia</strong> (archivo <code>.txt</code>).</li>
+      <li>Presionar <strong>“Procesar y descargar”</strong> para ejecutar el análisis y obtener el ZIP de resultados.
+      </li>
+      <li>Consultar el <strong>área de log</strong> para verificar el resultado de la ejecución.</li>
+    </ol>
+
+    <div class="tip">
+      ⚠️ Por políticas del navegador, si se carga un archivo ZIP y luego se navega a “Configuraciones”,
+      la referencia del archivo se pierde. Por lo tanto, se recomienda:
+      <br><br>
+      <strong>1)</strong> Seleccionar el tipo de medición.<br>
+      <strong>2)</strong> Ajustar las configuraciones necesarias.<br>
+      <strong>3)</strong> Cargar el archivo ZIP y ejecutar el procesamiento.
+    </div>
+
+    <hr>
+
+    <h2>3. Interfaz principal</h2>
+    <ul>
+      <li><strong>Selector de tipo de medición:</strong> define si el conjunto de datos corresponde a agua o suelo.
+        Es el paso obligatorio antes de acceder a las configuraciones.</li>
+      <li><strong>Carga de archivo ZIP:</strong> debe respetar la estructura recomendada de carpetas y archivos
+        de medición.</li>
+      <li><strong>Spectralon de referencia (opcional):</strong> si se adjunta, se aplicará solo en esa ejecución
+        y no se guardará de forma permanente.</li>
+      <li><strong>Procesar y descargar:</strong> inicia el flujo de cálculo y genera automáticamente un archivo ZIP
+        con los productos derivados y los metadatos.</li>
+      <li><strong>Área de log:</strong> muestra mensajes del sistema, validaciones y errores.</li>
+      <li><strong>Botones de utilidad:</strong>
+        <ul>
+          <li>🧹 <em>Limpiar</em>: reinicia la sesión y elimina configuraciones temporales.</li>
+          <li>⚙️ <em>Configuraciones</em>: abre el panel de ajustes de parámetros.</li>
+          <li>☀️🌙 <em>Modo visual</em>: alterna entre modo claro y oscuro.</li>
+          <li>ℹ️ <em>Guía de usuario</em>: abre este documento.</li>
+        </ul>
+      </li>
+    </ul>
+
+    <hr>
+
+    <h2>4. Configuraciones y parámetros</h2>
+    <p>
+      El módulo de configuraciones permite ajustar temporalmente los parámetros de procesamiento.
+      Existen <strong>tres tipos de configuraciones</strong>:
+    </p>
+
+    <h3>4.1 Agua o Suelo</h3>
+    <ul>
+      <li><strong>spectrum:</strong> cantidad de espectros a promediar por bloque.</li>
+      <li><strong>meas_order:</strong> orden de medición (<code>spectralon</code>, <code>target</code>,
+        <code>cielo</code>).</li>
+      <li><strong>target_list:</strong> lista de identificadores de mediciones o blancos.</li>
+    </ul>
+
+    <p>
+      Estas configuraciones afectan directamente la lógica de procesamiento.
+      Los cambios se aplican solo en la siguiente ejecución y se almacenan en sesión,
+      por lo que se eliminan al presionar “Limpiar”.
+    </p>
+
+    <h3>4.2 Spectralon (referencia)</h3>
+    <p>
+      La opción <strong>Spectralon</strong> permite editar o sustituir el archivo de referencia
+      utilizado para calcular las reflectancias. Hay dos modos posibles:
+    </p>
+    <ul>
+      <li><strong>Edición parcial:</strong> se pueden modificar únicamente algunos parámetros del archivo Spectralon por
+        defecto.</li>
+      <li><strong>Reemplazo completo:</strong> permite subir un nuevo archivo Spectralon (<code>.txt</code>) temporal
+        que será usado solo durante la ejecución actual.</li>
+    </ul>
+
+    <div class="tip">
+      ⚙️ Las configuraciones del tipo <em>Spectralon</em> no alteran el archivo base
+      permanente del sistema, sino que se aplican de forma temporal a la sesión actual.
+    </div>
+
+    <hr>
+
+    <h2>5. Procesamiento, resultados y registro de ejecución</h2>
+    <p>
+      Al presionar <strong>Procesar y descargar</strong>, el sistema envía los datos al
+      servicio principal (<code>interfaz/services/processing.py</code>), que comunica la solicitud
+      al módulo central de procesamiento (<code>procesamiento/service.py</code>).
+    </p>
+    <ul>
+      <li>Verifica el tipo de medición y la validez del archivo ZIP.</li>
+      <li>Aplica los parámetros definidos y el Spectralon correspondiente.</li>
+      <li>Ejecuta los cálculos radiométricos y genera los productos derivados.</li>
+      <li>Comprime los resultados y devuelve un archivo ZIP
+        (<code>resultados_agua.zip</code> o <code>resultados_suelo.zip</code>),
+        que incluye todos los productos y un registro detallado de la ejecución.</li>
+    </ul>
+
+    <p>
+      Durante este proceso, el sistema mantiene un <strong>registro técnico interno (log)</strong>
+      con información completa sobre la sesión:
+    </p>
+    <ul>
+      <li>Tipo de medición procesada (agua o suelo).</li>
+      <li>Parámetros y configuraciones aplicadas.</li>
+      <li>Nombre del Spectralon utilizado.</li>
+      <li>Archivos procesados y estructura de entrada.</li>
+      <li>Tiempos de ejecución, validaciones y posibles advertencias.</li>
+    </ul>
+
+    <div class="tip">
+      🧾 Este log se guarda automáticamente dentro del ZIP de resultados en formato
+      <code>JSON</code>, lo que permite conservar trazabilidad técnica y reproducibilidad de cada ejecución.
+    </div>
+
+    <hr>
+
+    <h2>6. Logs, trazabilidad y funciones futuras</h2>
+    <p>
+      Además del registro interno incluido en el ZIP, la interfaz presenta un
+      <strong>área de log visual</strong> que muestra en tiempo real los mensajes del proceso:
+      inicio, ejecución y finalización. Esta información es solo referencial y no reemplaza
+      al log técnico.
+    </p>
+
+    <ul>
+      <li>
+        <strong>Log técnico (interno):</strong> archivo <code>.json</code> dentro del ZIP generado,
+        con todos los datos técnicos de la sesión. Es el registro oficial para control y auditoría.
+      </li>
+      <li>
+        <strong>Log visual (pantalla):</strong> muestra los eventos principales durante la ejecución.
+      </li>
+      <li>
+        <strong>Botón “🔧 Próxima función”:</strong> reservado para futuras implementaciones.
+        Actualmente informa al usuario que la funcionalidad se encuentra en desarrollo.
+      </li>
+    </ul>
+
+    <div class="tip">
+      🧩 En futuras versiones, este botón podrá incorporar funciones adicionales, como:
+      <br>• Generar un <strong>informe resumido</strong> de procesamiento (PDF o TXT).<br>
+      • <strong>Enviar registros</strong> a un servidor interno para monitoreo.<br>
+      • <strong>Comparar configuraciones</strong> entre ejecuciones previas.
+    </div>
+
+    <p>
+      Se recomienda conservar los archivos ZIP de resultados con su log interno como respaldo técnico de cada campaña.
+    </p>
+
+    <hr>
+
+
+    <h2>7. Estructura de datos recomendada</h2>
+    <p>Las carpetas de entrada deben respetar la siguiente estructura:</p>
+
+    <h3>Mediciones de AGUA</h3>
+    <pre>
+123-20240513-SUS/
+    Radiometria/
+        Texto Rad CorrPar/
+            *.txt
+    </pre>
+
+    <h3>Mediciones de SUELO</h3>
+    <pre>
+183-20220816-SG/
+    Radiometria/
+        Texto Rad CorrPar/
+            *.txt
+    </pre>
+
+    <p>
+      Los nombres siguen el patrón <code>código-fecha-identificador</code>,
+      fundamental para la correcta identificación de cada conjunto de datos.
+    </p>
+
+    <hr>
+
+    <h2>8. Errores comunes y recomendaciones</h2>
+    <ul>
+      <li><strong>Tipo de medición inválido:</strong> asegúrese de seleccionar “Agua” o “Suelo” antes de procesar.</li>
+      <li><strong>Archivo ZIP faltante:</strong> el campo es obligatorio.</li>
+      <li><strong>Archivo Spectralon demasiado grande:</strong> reduzca el tamaño o use el predeterminado.</li>
+      <li><strong>Archivo perdido tras cambiar de vista:</strong> vuelva a cargar el ZIP antes de procesar.</li>
+      <li><strong>Error de procesamiento:</strong> revise el log; puede deberse a estructura o formato incorrecto.</li>
+    </ul>
+
+    <hr>
+
+    <h2>9. Contacto y soporte técnico</h2>
+    <p>Ante consultas o reportes técnicos, comunicarse con el equipo de desarrollo:</p>
+    <ul>
+      <li><a href="mailto:jquinteros@sec.conae.gov.ar">jquinteros@sec.conae.gov.ar</a></li>
+      <li><a href="mailto:privolta@conae.gov.ar">privolta@conae.gov.ar</a></li>
+      <li><a href="mailto:sheredia@conae.gob.ar">sheredia@conae.gob.ar</a></li>
+    </ul>
+
+    <br>
+    <div style="text-align:center;color:#666;font-size:0.97em;margin-top:2em;">
+      © 2025 Comisión Nacional de Actividades Espaciales (CONAE).<br>
+      Desarrollo: Juan Carlos Enrique Quinteros, Pedro Rivolta, Sebastián Heredia.<br>
+      Todos los derechos reservados.
+    </div>
+  </div>
+</body>
+
+</html>
+
+
+
+

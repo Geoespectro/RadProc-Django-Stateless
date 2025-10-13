@@ -12,7 +12,7 @@ urlpatterns = [
     path('guardar_spectralon/', views.guardar_spectralon, name='guardar_spectralon'),
     path('cambiar_spectralon/', views.cambiar_spectralon, name='cambiar_spectralon'),
 
-    path('manual/', views.manual_usuario, name='manual_usuario'),
+    path('guia/', views.guia_usuario, name='guia_usuario'),
     path('limpiar_sesion/', views.limpiar_sesion, name='limpiar_sesion'),
     path('descargar_resultados/', views.descargar_resultados, name='descargar_resultados'),
 ]

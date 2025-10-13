@@ -200,9 +200,12 @@ def guardar_config(request):
 
 
 
-def manual_usuario(request):
-    # Podés reemplazar por un render a un template de manual si lo tienes
-    return HttpResponse("Manual de usuario no disponible aún.", content_type="text/plain")
+def guia_usuario(request):
+    """
+    Renderiza la Guia de usuario (guía rápida) ubicado en templates/docs/guia_usuario.html
+    """
+    return render(request, "docs/guia_usuario.html")
+
 
 
 def descargar_resultados(request):

@@ -1,11 +1,30 @@
 {% extends 'main/base.html' %}
 {% load static %}
 
+{# ============================================================================
+  editar_spectralon.html — Editor de archivo Spectralon (.txt)
+  ---------------------------------------------------------------------------
+  Descripción:
+    Permite visualizar y editar directamente el archivo de referencia Spectralon
+    usado en el procesamiento de reflectancias. Los cambios afectan el cálculo
+    de reflectancia en la siguiente ejecución.
+
+  Incluye:
+    - Advertencia de seguridad (alert-warning)
+    - Formulario con textarea editable para el contenido del archivo
+    - Botones “Guardar” y “Cancelar”
+    - Script inline que ajusta el enlace del botón Inicio según el tipo actual
+
+  CSS asociado: static/css/config.css
+  JS asociado:  (no requiere archivo externo, script inline al final)
+============================================================================ #}
+
 {% block title %}Editar Spectralon{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/config.css' %}">
 <style>
+  /* === Área de texto del editor Spectralon === */
   textarea.editor {
     width: 100%;
     height: 500px;
@@ -17,21 +36,27 @@
 
 {% block content %}
 <section class="ventana-config">
+  <!-- === Título principal === -->
   <h2 class="mb-3">Editor archivo Spectralon</h2>
 
+  <!-- === Advertencia de modificación sensible === -->
   <div class="alert alert-warning">
-    ⚠️ Este archivo es sensible. Modificarlo puede afectar el procesamiento de reflectancias. Realice cambios solo si está seguro.
+    ⚠️ Este archivo es sensible. Modificarlo puede afectar el procesamiento de
+    reflectancias. Realice cambios solo si está seguro.
   </div>
 
+  <!-- === Formulario principal de edición === -->
   <form action="{% url 'guardar_spectralon' %}" method="post">
     {% csrf_token %}
-    <!-- 🔧 Preservar el tipo al guardar -->
+    <!-- 🔧 Preserva el tipo actual al guardar -->
     <input type="hidden" name="tipo_actual" value="{{ tipo_actual }}">
 
+    <!-- Área de edición -->
     <div class="mb-3">
       <textarea name="contenido_txt" class="form-control editor">{{ contenido_txt }}</textarea>
     </div>
 
+    <!-- Botones de acción -->
     <div class="d-flex justify-content-end gap-2">
       <button type="submit" class="btn btn-primary">Guardar cambios</button>
       <a href="{% url 'configuraciones' %}?tipo={{ tipo_actual }}" class="btn btn-secondary">Cancelar</a>
@@ -42,13 +67,14 @@
 
 {% block extra_js %}
 <script>
-  // Opcional: que el botón Inicio del navbar vuelva con el tipo correcto
+  // ==========================================================================
+  // Script inline — Ajusta el botón Inicio del navbar según el tipo actual
+  // ==========================================================================
   document.addEventListener('DOMContentLoaded', function () {
     const homeBtn = document.querySelector('a[title="Inicio"]');
     if (homeBtn) homeBtn.setAttribute('href', '/?tipo={{ tipo_actual }}');
   });
 </script>
 {% endblock %}
-
 
 

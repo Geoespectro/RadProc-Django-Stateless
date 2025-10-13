@@ -1,64 +1,55 @@
-/* ==========================================
-   index.css – Estilos para index.html
-   ========================================== */
+/* ============================================================================
+   index.css — Estilos específicos de la página de Inicio
+   Asocia: index.html / index.js
+   ---------------------------------------------------------------------------
+   Contiene estilos para:
+     - Formulario ZIP y Spectralon
+     - Log de procesamiento
+     - Modal "Próxima función"
+     - Adaptaciones modo oscuro y responsive
+============================================================================ */
 
 /* === FORMULARIO ZIP === */
 #form-datos .input-group { flex-wrap: nowrap; }
 
-/* Nombre del ZIP cargado (debajo del input) */
+/* Nombre del ZIP cargado */
 #nombre-carpeta-datos { font-size: .9rem; color: #555; }
 body.modo-oscuro #nombre-carpeta-datos { color: var(--c-muted); }
 
-/* Empuje fino del bloque de descarga (si lo usás) */
-form[action="/descargar_resultados/"] { margin-top: -20px; }
-
-/* === BLOQUE SPECTRALON (opcional) === */
+/* === BLOQUE SPECTRALON === */
 .row.align-items-center.mb-4 {
-  background: #f3faff;                 /* claro */
+  background: #f3faff;
   border-left: 4px solid #00aaff;
   padding: 10px 15px;
   border-radius: 6px;
 }
 body.modo-oscuro .row.align-items-center.mb-4 {
-  background: #152028;                 /* equivalente legible en dark */
+  background: #152028;
   border-left-color: #3da5ff;
 }
 
-/* Texto del nombre del archivo centrado y destacado */
+/* Botón “Cambiar…” y texto */
 .row.align-items-center.mb-4 span {
   font-weight: bold;
   text-align: center;
   display: block;
 }
-
-/* Previene quiebre de línea en el botón Cambiar… */
 .row.align-items-center.mb-4 button { white-space: nowrap; }
-
-/* === BARRA DE PROGRESO === */
-.progress { height: 25px; }
-#barra-progreso { font-weight: bold; line-height: 25px; }
 
 /* === LOG DE ACCIONES === */
 textarea.form-control {
   background: #f8fcff;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font-family: ui-monospace, Menlo, Consolas, monospace;
   resize: none;
 }
 #log-area {
-  white-space: pre-wrap;  /* respeta \n y envuelve */
+  white-space: pre-wrap;
   line-height: 1.25;
   overflow: auto;
 }
-
-/* Dark para el log (mejor contraste) */
-body.modo-oscuro textarea.form-control { background: #0f1317; border-color: var(--c-border); }
-
-/* === RESPONSIVE – móviles === */
-@media (max-width: 768px) {
-  .row.align-items-center.mb-4 { flex-direction: column; text-align: center; }
-  .row.align-items-center.mb-4 .col-md-4 { justify-content: center; }
-  .d-flex.flex-md-row { flex-direction: column !important; }
-  .d-flex.flex-md-row button { align-self: center !important; width: 100%; }
+body.modo-oscuro textarea.form-control {
+  background: #0f1317;
+  border-color: var(--c-border);
 }
 
 /* === LOGO === */
@@ -71,51 +62,57 @@ body.modo-oscuro textarea.form-control { background: #0f1317; border-color: var(
 }
 .logo-app {
   max-width: 160px;
-  height: auto;
   opacity: .9;
-  filter: drop-shadow(0 0 2px rgba(0,0,0,.15));
   transition: transform .3s ease;
+  filter: drop-shadow(0 0 2px rgba(0,0,0,.15));
 }
 .logo-app:hover { transform: scale(1.05); }
 
-/* === Toaster fijo (mensaje “Ir a configuraciones”) === */
-.toast-container-fixed { position: fixed; top: 20px; right: 20px; z-index: 9999; }
+/* === MODAL “PRÓXIMA FUNCIÓN” === */
+.modal-prox {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.55);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  animation: fadeIn 0.3s ease-in-out;
+}
+.modal-prox-content {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 24px 36px;
+  text-align: center;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+  color: #23272e;
+  max-width: 400px;
+}
+.modal-prox-content h5 { color: #007bff; margin-bottom: 10px; }
 
-/* === Dark mode: Spectralon + ayudas + spans muted === */
-
-/* Nombre del Spectralon (id="nombre-spectralon") */
-body.modo-oscuro #nombre-spectralon {
-  color: #d5dee8 !important;   /* gris claro legible */
-  font-weight: 600;            /* un poco más marcado */
-  opacity: 1;
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+@media (prefers-color-scheme: dark) {
+  .modal-prox-content {
+    background: #1c2328;
+    color: #eaf6ff;
+    box-shadow: 0 4px 18px #0b1a22;
+  }
 }
 
-/* Textos de ayuda dentro del bloque Spectralon */
-body.modo-oscuro .row.align-items-center.g-3 .form-text {
-  color: #b8c4d0 !important;   /* gris intermedio */
+/* === BOTÓN PRÓXIMA FUNCIÓN === */
+#btn-proxima-funcion {
+  transition: background-color 0.3s ease, transform 0.2s ease;
 }
+#btn-proxima-funcion:hover { transform: scale(1.04); }
 
-/* Cubre también spans con .text-muted (ej. "Ningún archivo seleccionado") */
-body.modo-oscuro .text-muted {
-  color: #c0c9d2 !important;   /* gris claro uniforme */
-}
-
-/* ======================
-   Dark mode: botón "Seleccionar archivo"
-   ====================== */
-
-/* Estado normal en modo oscuro */
-body.modo-oscuro .input-group .form-control[type="file"]::file-selector-button {
-  background-color: #2d343a;
-  color: #e6eef6;
-  border: 1px solid #3f474f;
-  transition: all 0.2s ease-in-out;
-}
-
-/* Estado hover en modo oscuro */
-body.modo-oscuro .input-group .form-control[type="file"]::file-selector-button:hover {
-  background-color: #ffffff !important;  /* pasa a blanco */
-  color: #000000 !important;             /* texto negro para contraste */
-  border: 1px solid #cccccc !important;
+/* === RESPONSIVE === */
+@media (max-width: 768px) {
+  .row.align-items-center.mb-4 { flex-direction: column; text-align: center; }
+  .d-flex.flex-md-row { flex-direction: column !important; }
+  .d-flex.flex-md-row button { width: 100%; }
 }
 

@@ -1,6 +1,28 @@
 {% extends 'main/base.html' %}
 {% load static %}
 
+{# ============================================================================
+  index.html — Página principal de RadProc WEB
+  ---------------------------------------------------------------------------
+  Descripción:
+    Interfaz principal del sistema. Permite seleccionar el tipo de medición
+    (Agua o Suelo), subir el archivo ZIP con datos espectrales y, de forma
+    opcional, un archivo Spectralon de referencia temporal.
+
+  Contiene:
+    - Selector de tipo de medición (Agua / Suelo)
+    - Formulario principal para carga y procesamiento de ZIP
+    - Campo opcional para Spectralon (solo para esa ejecución)
+    - Log visual de procesamiento (textarea)
+    - Botones de limpieza y "Próxima función" (placeholder de desarrollo)
+    - Logo institucional RadProc (posición flotante)
+
+  JS asociado:  static/js/index.js
+  CSS asociado: static/css/index.css
+  Extiende desde: main/base.html
+============================================================================ #}
+
+
 {% block title %}Inicio | RadProc{% endblock %}
 
 {% block extra_css %}
@@ -85,7 +107,7 @@
       </form>
 
       <div class="d-flex gap-2 flex-wrap">
-        <button type="button" class="btn btn-success btn-sm" id="btn-exportar-log">Exportar log</button>
+        <button type="button" class="btn btn-secondary btn-sm" id="btn-proxima-funcion">🔧 Próxima función</button>
         <!-- ⚠️ Botón de descargar resultados eliminado: el ZIP se entrega al procesar -->
       </div>
     </div>

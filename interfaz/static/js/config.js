@@ -1,117 +1,136 @@
-// config.js — STATELESS + modal simple (solo botón "Editar")
+// ============================================================================
+// config.js — Lógica de la vista "Configuraciones"
+// ---------------------------------------------------------------------------
+// Controla:
+//  - Selector de tipo de configuración (agua, suelo, spectralon)
+//  - Bloqueo dinámico y redirección entre vistas
+//  - Edición de listas (meas_order y target_list) mediante modal Bootstrap
+//  - Validación y normalización de datos JSON
+// ============================================================================
+
 console.log("✅ config.js cargado");
 
 document.addEventListener("DOMContentLoaded", function () {
   const tipoConfig = document.getElementById("tipo-config");
   const formConfig = document.getElementById("form-config");
 
-  // ===== helpers UI de tipo =====
+  // ==========================================================================
+  // 🔧 Helpers UI (control del select principal)
+  // ==========================================================================
+
+  /** Guarda el último tipo seleccionado (agua/suelo) */
   function initUltimoTipo() {
     if (!tipoConfig) return;
     const v = (tipoConfig.value || "").toLowerCase();
-    if (v === "agua" || v === "suelo") {
-      tipoConfig.dataset.current = v;
-    } else if (!tipoConfig.dataset.current) {
-      tipoConfig.dataset.current = "agua";
-    }
+    tipoConfig.dataset.current = ["agua", "suelo"].includes(v) ? v : "agua";
   }
+
+  /** Aplica color temático al select */
   function actualizarEstiloConfiguracion() {
     if (!tipoConfig) return;
-    tipoConfig.classList.remove("agua","suelo","spectralon");
-    switch ((tipoConfig.value || "").toLowerCase()) {
-      case "agua": tipoConfig.classList.add("agua"); break;
-      case "suelo": tipoConfig.classList.add("suelo"); break;
-      case "spectralon": tipoConfig.classList.add("spectralon"); break;
-    }
+    tipoConfig.classList.remove("agua", "suelo", "spectralon");
+    tipoConfig.classList.add((tipoConfig.value || "").toLowerCase());
   }
+
+  /** Bloquea la opción opuesta al tipo actual */
   function bloquearOpuesta() {
     if (!tipoConfig) return;
     const v = (tipoConfig.value || "").toLowerCase();
-    const aguaOpt  = tipoConfig.querySelector('option[value="agua"]');
+    const aguaOpt = tipoConfig.querySelector('option[value="agua"]');
     const sueloOpt = tipoConfig.querySelector('option[value="suelo"]');
-    if (aguaOpt)  aguaOpt.disabled  = (v === "suelo");
-    if (sueloOpt) sueloOpt.disabled = (v === "agua");
+    if (aguaOpt) aguaOpt.disabled = v === "suelo";
+    if (sueloOpt) sueloOpt.disabled = v === "agua";
   }
+
+  /** Actualiza el botón Inicio del navbar con el tipo actual */
   function actualizarHomeHref() {
     const homeBtn = document.querySelector('a[title="Inicio"]');
     if (homeBtn && tipoConfig) {
-      const baseTipo = (tipoConfig.dataset.current || (tipoConfig.value || "")).toLowerCase();
-      homeBtn.setAttribute("href", "/?tipo=" + encodeURIComponent(baseTipo));
+      const baseTipo = (tipoConfig.dataset.current || tipoConfig.value || "").toLowerCase();
+      homeBtn.href = `/?tipo=${encodeURIComponent(baseTipo)}`;
     }
   }
 
-  initUltimoTipo(); actualizarEstiloConfiguracion(); bloquearOpuesta(); actualizarHomeHref();
+  // Estado inicial del select
+  initUltimoTipo();
+  actualizarEstiloConfiguracion();
+  bloquearOpuesta();
+  actualizarHomeHref();
 
+  // Evento de cambio de tipo
   if (tipoConfig && !tipoConfig.dataset.bound) {
-    tipoConfig.addEventListener("change", function () {
+    tipoConfig.addEventListener("change", () => {
       const selected = (tipoConfig.value || "").toLowerCase();
       if (selected === "spectralon") {
+        // Redirigir al editor TXT
         const ultimo = tipoConfig.dataset.current || "agua";
-        window.location.href = "/editar_spectralon/?tipo=" + encodeURIComponent(ultimo);
+        window.location.href = `/editar_spectralon/?tipo=${encodeURIComponent(ultimo)}`;
         return;
       }
       tipoConfig.dataset.current = selected;
-      actualizarEstiloConfiguracion(); bloquearOpuesta(); actualizarHomeHref();
+      actualizarEstiloConfiguracion();
+      bloquearOpuesta();
+      actualizarHomeHref();
+      // Refresca la vista de configuraciones
       window.location.href = `/configuraciones/?tipo=${encodeURIComponent(selected)}&force_config=1`;
     });
     tipoConfig.dataset.bound = "1";
   }
 
-  // ===== Modal para listas (meas_order, target_list) =====
+  // ==========================================================================
+  // 🧩 Modal Bootstrap para editar listas meas_order / target_list
+  // ==========================================================================
+
   const modalEl = document.getElementById("editorListaModal");
-  const editor  = document.getElementById("editorTextarea");
-  const helpEl  = document.getElementById("editor-help");
+  const editor = document.getElementById("editorTextarea");
+  const helpEl = document.getElementById("editor-help");
   const feedback = document.getElementById("editorFeedback");
   const titleEl = document.getElementById("editorListaLabel");
   const btnAplicar = document.getElementById("btn-aplicar-lista");
   const BS = window.bootstrap;
-  const modal = (modalEl && BS) ? new BS.Modal(modalEl, { backdrop:'static' }) : null;
+  const modal = modalEl && BS ? new BS.Modal(modalEl, { backdrop: "static" }) : null;
 
-  let currentField = null; // "meas_order" | "target_list"
+  let currentField = null; // almacena qué campo se está editando
 
+  /** Convierte texto a array de strings, tolerante a formatos */
   function parseToArrayLoose(text) {
-    // 1) intentar JSON
     try {
       const parsed = JSON.parse(text);
       if (Array.isArray(parsed)) return parsed.map(String);
-    } catch(e) {}
-    // 2) coma-separado (permite [] y comillas sueltas)
+    } catch (_) {}
     let t = String(text || "").trim();
     if (t.startsWith("[") && t.endsWith("]")) t = t.slice(1, -1);
-    const parts = t.split(",").map(s => s.trim()).filter(Boolean);
-    return parts.map(s => s.replace(/^['"]|['"]$/g, ""));
+    return t
+      .split(",")
+      .map((s) => s.trim().replace(/^['"]|['"]$/g, ""))
+      .filter(Boolean);
   }
 
+  /** Muestra ayuda contextual según el campo */
   function setHelp(field) {
     if (!helpEl) return;
-    if (field === "meas_order") {
-      helpEl.innerHTML = `
-        <strong>Orden de medición</strong> (temporal).
-        Valores permitidos: <code>spectralon</code>, <code>target</code>, <code>cielo</code>.<br>
-        Podés escribir <em>coma-separado</em> (ej.: <code>spectralon, target, cielo</code>)
-        o pegar un JSON (ej.: <code>["spectralon","target"]</code>).
-      `;
-    } else {
-      helpEl.innerHTML = `
-        <strong>Lista de targets</strong> (temporal).
-        Ejemplo: <code>M1, M2, M3</code> o JSON <code>["M1","M2","M3"]</code>.
-      `;
-    }
+    helpEl.innerHTML =
+      field === "meas_order"
+        ? `<strong>Orden de medición</strong> (temporal).<br>
+           Valores permitidos: <code>spectralon</code>, <code>target</code>, <code>cielo</code>.<br>
+           Podés escribir coma-separado o pegar JSON.`
+        : `<strong>Lista de targets</strong> (temporal). Ejemplo: <code>M1, M2, M3</code> o JSON equivalente.`;
   }
 
+  /** Abre el modal de edición */
   function openEditor(field) {
     const inputEl = document.getElementById(field);
     if (!inputEl || !modal || !editor) return;
     currentField = field;
     setHelp(field);
-    if (titleEl) titleEl.textContent = `Editar ${field}`;
-    // mostrar en formato legible
+    titleEl && (titleEl.textContent = `Editar ${field}`);
     editor.value = JSON.stringify(parseToArrayLoose(inputEl.value), null, 2);
     feedback.textContent = "";
     feedback.className = "mt-2 small";
     modal.show();
   }
 
+  /** Valida y aplica cambios del modal */
   function applyEditor() {
     const arr = parseToArrayLoose(editor.value);
     if (!arr.length) {
@@ -119,43 +138,44 @@ document.addEventListener("DOMContentLoaded", function () {
       feedback.textContent = "Ingresá al menos un valor (coma-separado o JSON).";
       return;
     }
-    // validación domain simple para meas_order
+
     if (currentField === "meas_order") {
-      const ok = arr.every(v => ["spectralon","target","cielo"].includes(v.toLowerCase()));
+      const ok = arr.every((v) => ["spectralon", "target", "cielo"].includes(v.toLowerCase()));
       if (!ok) {
         feedback.className = "mt-2 small text-danger";
         feedback.textContent = 'Solo se permiten valores: "spectralon", "target", "cielo".';
         return;
       }
     }
+
     const inputEl = document.getElementById(currentField);
     if (inputEl) inputEl.value = JSON.stringify(arr);
-    modal && modal.hide();
+    modal?.hide();
   }
 
-  // Botones "Editar"
-  document.addEventListener("click", function (e) {
+  // Abrir modal desde botones "Editar"
+  document.addEventListener("click", (e) => {
     const btn = e.target.closest(".btn-edit-list");
-    if (!btn) return;
-    openEditor(btn.getAttribute("data-target"));
+    if (btn) openEditor(btn.dataset.target);
   });
 
-  if (btnAplicar) btnAplicar.addEventListener("click", applyEditor);
+  btnAplicar?.addEventListener("click", applyEditor);
 
-  // Ctrl/Cmd+Enter para aplicar
-  if (editor) {
-    editor.addEventListener("keydown", function (e) {
-      if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
-        e.preventDefault();
-        applyEditor();
-      }
-    });
-  }
+  // Atajo: Ctrl/Cmd + Enter aplica cambios
+  editor?.addEventListener("keydown", (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+      e.preventDefault();
+      applyEditor();
+    }
+  });
 
-  // Normalización al enviar (garantiza JSON válido)
+  // ==========================================================================
+  // 💾 Normalización antes de enviar formulario
+  // ==========================================================================
+
   if (formConfig && !formConfig.dataset.bound) {
-    formConfig.addEventListener("submit", function () {
-      ["meas_order","target_list"].forEach(id => {
+    formConfig.addEventListener("submit", () => {
+      ["meas_order", "target_list"].forEach((id) => {
         const el = document.getElementById(id);
         if (!el) return;
         try {
@@ -164,7 +184,7 @@ document.addEventListener("DOMContentLoaded", function () {
             el.value = JSON.stringify(parsed.map(String));
             return;
           }
-        } catch(e){}
+        } catch (_) {}
         el.value = JSON.stringify(parseToArrayLoose(el.value));
       });
     });

@@ -1,12 +1,13 @@
-/* ==========================================
-   base.css – Estilos comunes globales
-   Se carga desde base.html y aplica a todas las páginas.
-   ========================================== */
+/* ============================================================================
+   base.css — Estilos globales comunes de RadProc WEB
+   ---------------------------------------------------------------------------
+   Define:
+     - Variables de color base (modo claro/oscuro)
+     - Estilos de tipografía, inputs, selectores y botones
+     - Select tematizado por tipo (agua/suelo/spectralon)
+     - Sistema de avisos tipo toast
+============================================================================ */
 
-/* ------------------------------------------
-   1) TOKENS DE COLOR (fácil de editar)
-   - Cambiás sólo estos valores y se refleja en todo el sitio.
-   ------------------------------------------ */
 
 :root {
   /* Base claro */
@@ -185,3 +186,6 @@ select.form-select.spectralon option { background: #fff; color: #665200; }
 
 /* Footer tamaño */
 footer { margin-top: auto; font-size: .9rem; }
+
+
+

@@ -1,0 +1,131 @@
+/* ============================================================================
+   manual_usuario.css — Guía Rápida de Usuario RadProc WEB
+   Estilo institucional con modo claro/oscuro y estructura profesional
+   =========================================================================== */
+
+body {
+    background: #eaf6ff;
+    color: #23272e;
+    font-family: 'Segoe UI', 'Arial', sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    max-width: 860px;
+    margin: 40px auto;
+    padding: 36px 46px;
+    background: #fafdff;
+    border-radius: 15px;
+    box-shadow: 0 4px 22px rgba(0, 0, 0, 0.15);
+    border: 1.5px solid #bde6fa;
+}
+
+h1 {
+    color: #0083b0;
+    font-size: 2.1em;
+    text-align: center;
+    margin-top: 0;
+    margin-bottom: 0.2em;
+    font-weight: 700;
+}
+h2 {
+    color: #0083b0;
+    font-size: 1.35em;
+    margin-top: 1.7em;
+    margin-bottom: 0.5em;
+    font-weight: 600;
+}
+h3 {
+    color: #00a5d3;
+    font-size: 1.15em;
+    margin-top: 1.15em;
+    margin-bottom: 0.3em;
+    font-weight: 600;
+}
+
+p, li {
+    font-size: 1.04em;
+    line-height: 1.66;
+}
+
+.tip {
+    background: linear-gradient(95deg, #d4f1ff 65%, #e3fff6 100%);
+    border-left: 5px solid #00b4d8;
+    padding: 13px 18px;
+    margin: 16px 0 22px 0;
+    color: #008068;
+    border-radius: 9px;
+    font-weight: 500;
+}
+
+code, pre {
+    background: #e8f2fa;
+    color: #0079a3;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-family: 'Fira Mono', Consolas, monospace;
+    border: 1px solid #bde6fa;
+}
+
+pre {
+    display: block;
+    margin: 10px 0 16px 0;
+    padding: 11px 15px;
+    overflow-x: auto;
+}
+
+a {
+    color: #00b4d8;
+    text-decoration: underline;
+}
+a:hover {
+    color: #0083b0;
+}
+
+.container > div[style*="text-align:center"] {
+    color: #555a6a;
+    font-size: 0.97em;
+    margin-top: 2.5em;
+}
+
+/* Responsive */
+@media (max-width: 700px) {
+    .container { padding: 18px 5vw; }
+    h1, h2, h3 { text-align: left; }
+}
+
+/* ====== MODO OSCURO ====== */
+@media (prefers-color-scheme: dark) {
+    body {
+        background: #12171c;
+        color: #eaf6ff;
+    }
+    .container {
+        background: #1c2328;
+        box-shadow: 0 2px 18px #033040;
+        border: 1.5px solid #215572;
+    }
+    h1, h2, h3 {
+        color: #27e1fa;
+        text-shadow: 0 2px 8px #0c0f1f22;
+    }
+    li, p, ul, ol {
+        color: #eaf6ff;
+    }
+    .tip {
+        background: linear-gradient(92deg, #144c5c 60%, #233647 100%);
+        border-left: 5px solid #27e1fa;
+        color: #62ffc4;
+    }
+    code, pre {
+        background: #202a33;
+        color: #7ee9ff;
+        border: 1px solid #2980a5;
+    }
+    a { color: #6befff; }
+    a:hover { color: #27e1fa; }
+    hr { border-top: 2px solid #24577c; }
+}
+
+
