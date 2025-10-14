@@ -116,3 +116,166 @@ body.modo-oscuro textarea.form-control {
   .d-flex.flex-md-row button { width: 100%; }
 }
 
+/* === MODO OSCURO — Correcciones visuales en formulario de carga y Spectralon === */
+
+/* Texto de “ningún archivo seleccionado” o “archivo cargado” */
+body.modo-oscuro #nombre-carpeta-datos {
+  color: #d8e3ef !important;
+  font-weight: 500;
+}
+
+/* Bloque del Spectralon seleccionado */
+body.modo-oscuro .row.align-items-center.mb-4 {
+  background: #1d2730 !important;
+  border-left-color: #4db2ff;
+  color: #eaf2fa;
+}
+
+/* Texto dentro del bloque (ej: “SRT99-120.TXT”) */
+body.modo-oscuro .row.align-items-center.mb-4 span {
+  color: #eaf2fa !important;
+}
+
+/* Texto aclaratorio: “si adjuntas un Spectralon…” */
+body.modo-oscuro .text-secondary,
+body.modo-oscuro small {
+  color: #c9d7e3 !important;
+  font-weight: 400;
+}
+
+/* === Corrección hover botón “Seleccionar archivo” en modo oscuro === */
+body.modo-oscuro input[type="file"]::-webkit-file-upload-button:hover,
+body.modo-oscuro input[type="file"]::file-selector-button:hover {
+  background: #3a424c !important; /* tono más oscuro */
+  color: #ffffff !important;       /* texto blanco legible */
+  border-color: var(--c-border);
+}
+
+/* ============================================================================
+   🔧 FIX DEFINITIVO: botón "Seleccionar archivo" en modo oscuro
+   Evita que se aclare el fondo al pasar el mouse (hover) y mantiene texto visible
+============================================================================ */
+
+/* Estado normal */
+body.modo-oscuro input[type="file"]::-webkit-file-upload-button,
+body.modo-oscuro input[type="file"]::file-selector-button {
+  background: #2b3138 !important;
+  color: #eaf2fa !important;
+  border: 1px solid var(--c-border);
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+/* Hover */
+body.modo-oscuro input[type="file"]::-webkit-file-upload-button:hover,
+body.modo-oscuro input[type="file"]::file-selector-button:hover {
+  background: #3b424c !important; /* ligeramente más claro, pero sin perder contraste */
+  color: #ffffff !important;
+  border-color: #4b5661;
+}
+
+/* Active (clic presionado) */
+body.modo-oscuro input[type="file"]::-webkit-file-upload-button:active,
+body.modo-oscuro input[type="file"]::file-selector-button:active {
+  background: #1f2429 !important;
+  color: #ffffff !important;
+  border-color: #4b5661;
+}
+
+/* ============================================================================
+   🎨 Mejora visual — Bloque Spectralon de Referencia
+   Agrega jerarquía con fondo y borde sutil (modo claro y oscuro)
+============================================================================ */
+
+/* --- Modo claro --- */
+.spectralon-block {
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid #d9e1e8;
+  border-radius: 6px;
+  padding: 12px 16px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+/* --- Modo oscuro --- */
+body.modo-oscuro .spectralon-block {
+  background: #1f252b;
+  border: 1px solid #39424b;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+
+/* ============================================================================
+   🧱 Espaciado superior del bloque Spectralon (al eliminar la línea <hr>)
+============================================================================ */
+.spectralon-block {
+  margin-top: 1.5rem; /* ~24px de separación superior */
+}
+
+
+
+/* Estado deshabilitado */
+#btn-procesar:disabled {
+  background-color: #a9c5ff !important; /* azul pálido */
+  border-color: #a9c5ff !important;
+  color: #e6e6e6 !important;
+  cursor: not-allowed;
+  opacity: 1;
+}
+
+/* Estado activo */
+#btn-procesar {
+  background-color: #007bff; /* azul brillante */
+  border-color: #007bff;
+  transition: background-color 0.3s ease, box-shadow 0.2s ease;
+}
+
+/* Hover visual más profundo */
+#btn-procesar:hover {
+  background-color: #0056d6; /* azul más oscuro */
+  box-shadow: 0 0 10px rgba(0, 91, 230, 0.5);
+}
+
+/* Estado “procesando” */
+#btn-procesar.procesando {
+  background-color: #004080 !important;
+  border-color: #004080 !important;
+  color: #ffffff !important;
+  cursor: wait;
+}
+
+
+#btn-procesar.procesando {
+  animation: pulsar 1.2s infinite;
+}
+
+@keyframes pulsar {
+  0% { box-shadow: 0 0 0 0 rgba(0,123,255,0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(0,123,255,0); }
+  100% { box-shadow: 0 0 0 0 rgba(0,123,255,0); }
+}
+
+
+/* ============================================================================
+   🌙 Mejora de contraste — Botón "Procesar y descargar" deshabilitado en modo oscuro
+============================================================================ */
+body.modo-oscuro #btn-procesar:disabled {
+  background-color: #2b3b55 !important; /* azul grisáceo medio */
+  border-color: #32425f !important;
+  color: #b0bed0 !important; /* texto más claro */
+  opacity: 1; /* evita que se vea lavado */
+  cursor: not-allowed;
+}
+
+
+/* ============================================================================
+   ☀️ Mejora de contraste — Botón "Procesar y descargar" deshabilitado en modo claro
+============================================================================ */
+body.modo-claro #btn-procesar:disabled {
+  background-color: #c7dafd !important; /* azul intermedio */
+  border-color: #b2c8fa !important;
+  color: #6c757d !important; /* gris medio para el texto */
+  opacity: 1; /* evita que se vea blanqueado */
+  cursor: not-allowed;
+}
+
+

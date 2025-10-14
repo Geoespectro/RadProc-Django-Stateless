@@ -49,6 +49,12 @@ document.addEventListener("DOMContentLoaded", () => {
  * Si ya hay un ZIP cargado, avisa al usuario que deberá recargarlo al volver.
  */
 function abrirConfiguraciones() {
+  // Si ya estamos en la vista de configuraciones, no hacer nada
+  if (window.location.pathname.includes("/configuraciones")) {
+    console.log("Ya estás en Configuraciones, no se muestra mensaje.");
+    return;
+  }
+
   const select = document.getElementById("tipo-medicion");
   const tipo = (select && select.value) || "";
 
@@ -60,6 +66,7 @@ function abrirConfiguraciones() {
     }
     return;
   }
+
 
   const yaHayZip = sessionStorage.getItem("archivo_seleccionado") === "1";
   if (yaHayZip) {

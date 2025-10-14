@@ -29,12 +29,33 @@ document.addEventListener("DOMContentLoaded", function () {
   // ==========================================================================
 
   /** Muestra/oculta estado de procesamiento visual */
-  function setProcesando(isOn) {
+   /**function setProcesando(isOn) {
     if (!btnProcesar || !formDatos) return;
     btnProcesar.disabled = isOn;
     btnProcesar.textContent = isOn ? "Procesando…" : "Procesar y descargar";
     formDatos.classList.toggle("opacity-75", isOn);
+  }*/
+
+    /** Muestra/oculta estado de procesamiento visual con spinner */
+  function setProcesando(isOn) {
+  if (!btnProcesar || !formDatos) return;
+
+  if (isOn) {
+    btnProcesar.disabled = true;
+    btnProcesar.classList.add("procesando");
+    btnProcesar.innerHTML = `
+      <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+      Procesando…
+    `;
+    formDatos.classList.add("opacity-75");
+  } else {
+    btnProcesar.disabled = false;
+    btnProcesar.classList.remove("procesando");
+    btnProcesar.innerHTML = "Procesar y descargar";
+    formDatos.classList.remove("opacity-75");
   }
+}
+
 
   /** Actualiza mensaje del nombre del archivo ZIP */
   function setNombreArchivoOk(nombre) {
@@ -165,7 +186,7 @@ document.addEventListener("DOMContentLoaded", function () {
   // 🚀 Procesamiento principal (submit + descarga)
   // ==========================================================================
 
-  if (formDatos && !formDatos.dataset.bound) {
+  /*if (formDatos && !formDatos.dataset.bound) {
     formDatos.addEventListener("submit", async function (ev) {
       ev.preventDefault();
 
@@ -219,7 +240,82 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     });
     formDatos.dataset.bound = "1";
+  }*/
+
+  // ==========================================================================
+  // 🚀 Procesamiento principal (submit + descarga)
+  // ==========================================================================
+
+  if (formDatos && !formDatos.dataset.bound) {
+    formDatos.addEventListener("submit", async function (ev) {
+      ev.preventDefault();
+
+      const hayTipo = !!tipoSelect.value;
+      const tieneArchivo = inputArchivo?.files?.length > 0;
+
+      if (!hayTipo) {
+        mostrarToast?.("⚠️ Selecciona un tipo de medición antes de procesar.") ??
+          alert("⚠️ Selecciona un tipo de medición antes de procesar.");
+        return;
+      }
+
+      if (!tieneArchivo) {
+        mostrarToast?.("⚠️ Debes seleccionar un archivo ZIP antes de procesar.") ??
+          alert("⚠️ Debes seleccionar un archivo ZIP antes de procesar.");
+        setNombreArchivoRequerido("Debes seleccionar un archivo ZIP.");
+        return;
+      }
+
+      const fd = new FormData(formDatos);
+      setProcesando(true);
+      appendLog("⏳ Iniciando procesamiento…");
+
+      try {
+        const resp = await fetch(formDatos.action, { method: "POST", body: fd });
+        if (!resp.ok) {
+          const txt = await resp.text().catch(() => "");
+          appendLog(`❌ Error del servidor (${resp.status}). ${txt || ""}`.trim());
+          return;
+        }
+
+        const blob = await resp.blob();
+        const dispo = resp.headers.get("Content-Disposition") || "";
+        const filename = dispo.match(/filename="([^"]+)"/i)?.[1] || "resultados.zip";
+
+        // === ⚠️ Validación del resultado (detección de ZIP anómalo / solo metadata) ===
+        const smallZip = blob.size > 0 && blob.size < 10 * 1024; // ~10 KB
+        if (smallZip && typeof mostrarModalAdvertencia === "function") {
+          appendLog("⚠️ El ZIP descargado parece contener solo metadata o resultados parciales.");
+          mostrarModalAdvertencia(
+            "Parámetros fuera de rango",
+            "El paquete descargado contiene solo <b>metadata</b> o resultados parciales.<br>" +
+              "Esto suele ocurrir cuando la configuración (por ejemplo, <code>spectrum</code> o <code>meas_order</code>) " +
+              "no coincide con el conjunto de datos subido.<br><br>" +
+              "Revise la configuración y vuelva a intentar el procesamiento."
+          );
+        }
+
+        // === Descarga normal del archivo ZIP ===
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+
+        appendLog("✅ Procesamiento completado. Descarga iniciada.");
+        playDoneSound?.();
+      } catch (err) {
+        appendLog(`❌ Error de red o del cliente: ${err}`);
+      } finally {
+        setProcesando(false);
+      }
+    });
+    formDatos.dataset.bound = "1";
   }
+
 
   // ==========================================================================
   // 🧩 Próxima función (placeholder de desarrollo)

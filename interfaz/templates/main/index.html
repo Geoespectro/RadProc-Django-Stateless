@@ -67,22 +67,22 @@
     {% endif %}
   </div>
 
-  <!-- === Spectralon (opcional, sólo para esta ejecución) === -->
-  <hr class="my-4">
+ 
+  <!-- === Spectralon de Referencia === -->
+<div class="spectralon-block">
   <div class="row align-items-center g-3">
     <div class="col-md-6">
-      <label class="form-label mb-0"><strong>Spectralon de Referencia (opcional):</strong></label>
+      <label class="form-label mb-0"><strong>Spectralon de Referencia:</strong></label>
       <div class="form-text">
-        ⚠️ Si adjuntas un Spectralon, se usará <u>solo en esta ejecución</u>. No se guardará.
+        Este Spectralon se utiliza por defecto en todas las ejecuciones.
+        <br>Si deseas usar uno propio, puedes reemplazarlo temporalmente.
       </div>
     </div>
 
     <div class="col-md-6 d-flex justify-content-between align-items-center">
-      <span class="text-muted" id="nombre-spectralon" data-default="{{ nombre_spectralon }}">
+      <span id="nombre-spectralon" data-default="{{ nombre_spectralon }}" class="fw-semibold text-dark">
         {{ nombre_spectralon }}
       </span>
-
-      <!-- Input va DENTRO del form principal -->
       <button type="button" class="btn btn-outline-primary btn-sm m-0" id="btn-cambiar-spectralon">
         Cambiar…
       </button>
@@ -93,6 +93,8 @@
              style="display:none">
     </div>
   </div>
+</div>
+
 </form>
 
 <!-- === Log de procesamiento y acciones === -->
@@ -123,6 +125,6 @@
 {% block extra_js %}
 <!-- Un único JS consolidado (sin inline para evitar duplicados/caché) -->
 <script src="{% static 'js/index.js' %}"></script>
+<script src="{% static 'js/validacionResultado.js' %}"></script>
 {% endblock %}
-
 
