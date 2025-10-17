@@ -4,9 +4,11 @@ on:
   push:
     branches:
       - feat/sonido-descarga-zip
+      - feat/interfaz-ui
   pull_request:
     branches:
       - feat/sonido-descarga-zip
+      - feat/interfaz-ui
 
 jobs:
   build:
@@ -27,3 +29,4 @@ jobs:
       - name: ✅ Validate build
         run: |
           docker run --rm radproc-core
+
