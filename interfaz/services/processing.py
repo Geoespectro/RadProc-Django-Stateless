@@ -92,8 +92,13 @@ def process_request_to_zip_response(request) -> HttpResponse:
     if not up:
         return HttpResponse("Debes adjuntar un archivo ZIP en el campo 'zipfile'.", status=400)
 
+    # ✅ Validación preventiva: extensión del archivo
+    if not getattr(up, "name", "").lower().endswith(".zip"):
+        return HttpResponse("El archivo debe ser un ZIP válido.", status=400)
+
     # Params generales (overrides)
     params_raw = request.POST.get("params") or request.POST.get("params_json") or ""
+
     try:
         params = _parse_json_obj(params_raw)
     except json.JSONDecodeError:

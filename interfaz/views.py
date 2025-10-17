@@ -91,8 +91,6 @@ def _build_config_context(tipo: str) -> dict:
     """Arma contexto para configuraciones.html con defaults + overrides en sesión."""
     defaults = _load_defaults(tipo) if tipo in ("agua", "suelo") else {}
     overrides = {}
-    if isinstance(request_overrides := defaults, dict):  # placeholder
-        pass
     # combinar overrides de sesión si existen
     # (guardamos uno por tipo para no mezclar)
     merged = defaults.copy()
@@ -185,6 +183,8 @@ def guardar_config(request):
     if isinstance(over.get(tipo), dict):
         current.update(over[tipo])
 
+    if spectrum is not None and spectrum < 1:
+        spectrum = 1
     if spectrum is not None:
         current["spectrum"] = spectrum
     if (meas_order_raw or "").strip() != "":
