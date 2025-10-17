@@ -1,28 +1,17 @@
-# 🧠 Núcleo de Procesamiento – RadProc
+# ⚙️ Núcleo de Procesamiento – RadProc Core (Stateless)
 
-Este módulo contiene el **core de procesamiento espectral** del proyecto **RadProc**, responsable de interpretar archivos de medición (suelo y agua), aplicar calibraciones, generar gráficas y devolver resultados listos para análisis.
-
----
-
-## 📘 Descripción general
-
-El núcleo de RadProc está diseñado como una **unidad desacoplada y stateless**, apta para integrarse con interfaces web, APIs o ejecutarse de forma autónoma.
-Opera sobre directorios de entrada o configuraciones JSON, y produce salidas autocontenidas con metadatos completos.
+Este módulo contiene el **núcleo de procesamiento espectral** del sistema **RadProc**, encargado de interpretar, calibrar y procesar mediciones espectrales de **suelo** y **agua**.  
+Opera en modo **stateless**, mediante una **API REST (FastAPI)**, apta para integrarse con la interfaz web o utilizarse de forma independiente.
 
 ---
 
-## ⚙️ Funcionalidades principales
+## 🧠 Descripción general
 
-* Procesamiento espectral para **agua** y **suelo/planta**
-* Identificación automática de bloques `spectralon` y `target`
-* Cálculo de **reflectancia calibrada**
-* Exportación de:
-
-  * Archivos `.txt` procesados
-  * Gráficos `.png`
-  * Metadatos en `.json`
-* Modularidad total y soporte para pruebas unitarias (`pytest`)
-* Integración lista para contenedores Docker y CI/CD
+El Core de RadProc fue diseñado para:
+- Ejecutarse dentro de un contenedor Docker autónomo.
+- Procesar archivos ZIP con mediciones espectrales.
+- Generar resultados autocontenidos (`.txt`, `.png`, `.json`) dentro de un ZIP de salida.
+- Mantener independencia total de la interfaz gráfica.
 
 ---
 
@@ -30,135 +19,135 @@ Opera sobre directorios de entrada o configuraciones JSON, y produce salidas aut
 
 ```bash
 procesamiento/
-├── service.py               ← Orquestador general del procesamiento
-├── base.py                  ← Protocolo común para los procesadores
-├── processors/              ← Lógica específica de cada tipo
+├── app.py                   ← Servidor FastAPI (punto de entrada del contenedor)
+├── service.py               ← Orquestador principal del procesamiento
+├── base.py                  ← Clases y lógica compartida
+├── processors/              ← Procesadores especializados
 │   ├── agua.py
 │   └── suelo.py
-├── aux/                     ← Funciones auxiliares y cálculos
+├── aux/                     ← Funciones auxiliares (cálculos, lectura, gráficos)
 │   ├── aux_func.py
 │   └── aux_func_w.py
-├── configs/                 ← Configuraciones y archivos patrón
+├── configs/                 ← Configuraciones base y calibraciones
 │   ├── agua.json
 │   ├── suelo.json
 │   └── Spectralon/SRT-99-120.txt
-└── tests/                   ← Pruebas unitarias y fixtures
+└── tests/                   ← Pruebas unitarias
+````
+
+---
+
+## 🚀 Ejecución en modo API (Docker)
+
+### 🔧 1. Construcción del contenedor
+
+```bash
+# Desde la raíz del proyecto
+docker build -t radproc-core -f docker/core/Dockerfile .
+```
+
+### ▶️ 2. Ejecución del contenedor
+
+```bash
+docker run -it --rm -p 8080:8080 radproc-core
+```
+
+📍 El servicio quedará disponible en
+[http://localhost:8080/docs](http://localhost:8080/docs)
+
+---
+
+## 🌐 Endpoints principales (FastAPI)
+
+| Método | Ruta    | Descripción                                                             |
+| ------ | ------- | ----------------------------------------------------------------------- |
+| `POST` | `/run`  | Recibe un archivo `.zip` con mediciones y devuelve un `.zip` procesado. |
+| `GET`  | `/docs` | Interfaz Swagger para pruebas y documentación interactiva.              |
+
+### Ejemplo rápido con `curl`
+
+```bash
+curl -s -X POST \
+  -F "zip=@/ruta/a/tus_datos/208-20230516-CHAJARI.zip" \
+  http://localhost:8080/run \
+  -o salida.zip
 ```
 
 ---
 
-## 🧩 Componentes principales
+## 🧩 Lógica interna
+
+### `app.py`
+
+Contiene la aplicación **FastAPI** y define el endpoint `/run`.
+Llama internamente a las funciones del módulo `service.py`.
 
 ### `service.py`
 
-Orquesta el flujo completo de procesamiento.
-Funciones clave:
+Coordina el flujo de procesamiento:
 
-* `process_zip()` – Ejecuta procesamiento a partir de un ZIP comprimido.
-* `process_folder_to_zip()` – Procesa una carpeta y genera un ZIP con resultados.
-* `run_processing_from_json_file()` – Permite ejecutar pruebas con configuraciones JSON.
-
----
-
-### `processors/agua.py` y `processors/suelo.py`
-
-Procesadores especializados.
-Realizan:
-
-* Lectura de espectros crudos
-* Agrupación por tipo (`target` / `spectralon`)
-* Cálculos físicos (reflectancia)
-* Exportación de resultados y gráficos
+1. Descomprime el archivo ZIP.
+2. Detecta tipo de medición (`agua` o `suelo`).
+3. Ejecuta el procesador correspondiente.
+4. Genera los resultados y los empaqueta nuevamente en un `.zip`.
 
 ---
 
-### `aux/aux_func.py` y `aux_func_w.py`
+## 📦 Dependencias principales
 
-Funciones de utilidad:
+Ver archivo: `docker/core/requirements.txt`
 
-* Lectura tolerante de archivos `.txt` generados por ViewSpec Pro
-* Cálculo de índices espectrales
-* Cálculo de errores de reflectancia
-* Generación de gráficos `matplotlib` sin entorno gráfico (modo “Agg”)
+Incluye:
 
----
-
-### `configs/`
-
-Contiene parámetros por defecto de ejecución:
-
-* `agua.json` y `suelo.json` con configuraciones base.
-* Carpeta `Spectralon/` con archivo patrón `SRT-99-120.txt`.
+```text
+fastapi
+uvicorn
+python-multipart
+numpy
+matplotlib
+imageio
+watchdog
+boto3
+s3fs
+netCDF4
+cartopy
+```
 
 ---
 
 ## 🧪 Pruebas unitarias
 
-El módulo incluye un conjunto de pruebas automáticas con `pytest`.
-
-### Estructura de pruebas
-
-```bash
-procesamiento/tests/
-├── test_agua.py
-├── test_suelo.py
-├── test_errores.py
-└── fixtures/
-    ├── agua_tests.json
-    ├── suelo_tests.json
-    └── data/
-        ├── agua/agua_test_spectra.txt
-        └── suelo/suelo_test_spectra.txt
-```
-
-### Ejecución de pruebas
+Ejecutar desde la raíz del proyecto:
 
 ```bash
 source venv/bin/activate
-PYTHONPATH=. pytest procesamiento/tests/ -v
+pytest procesamiento/tests -v
 ```
 
 ---
 
-## 🧱 Integración con Docker
+## 🔄 Integración continua (GitHub Actions)
 
-El núcleo cuenta con su propio contenedor definido en `docker/core/`.
-Se puede construir y ejecutar de forma independiente:
+Este módulo cuenta con un **workflow activo en GitHub Actions** que:
+- Construye automáticamente la imagen Docker del core (`radproc-core`).
+- Ejecuta las pruebas unitarias dentro del contenedor.
+- Informa el resultado del build en la pestaña **Actions** del repositorio.
 
-```bash
-# Construir la imagen
-docker build -f docker/core/Dockerfile -t radproc-core .
+📦 El workflow se activa automáticamente con cada *push* o *pull request* a la rama principal  
+y publica la imagen con el tag `radproc-core:latest`.
 
-# Ejecutar el contenedor
-docker run --rm -it radproc-core
-```
-
-El contenedor ejecuta automáticamente `procesamiento.service` en modo stateless.
 
 ---
 
-## 🔄 Integración continua (CI/CD)
+## 🏷️ Créditos
 
-Este módulo está preparado para pipelines automáticos (GitHub Actions o Gitea).
-Al incluir un archivo `build_core.yml`, el contenedor se construye y valida de forma continua al realizar commits o merges en ramas activas.
-
----
-
-## 🔐 Requisitos
-
-* **Python 3.10+**
-* Dependencias: ver `docker/core/requirements.txt`
-* Estructura de archivos espectrales compatible con **ViewSpec Pro**
-
----
-
-## 🏷️ Licencia y créditos
-
-Desarrollado por **CONAE (Comisión Nacional de Actividades Espaciales)**
-Proyecto RadProc – Núcleo de Procesamiento Espectral
+Desarrollado por **Juan Carlos Quinteros.**
+Proyecto **RadProc – Comisión Nacional de Actividades Espaciales (CONAE)**
 Uso interno bajo licencia institucional.
 
 ---
+
+
 
 
 

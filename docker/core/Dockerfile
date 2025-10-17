@@ -1,23 +1,19 @@
-# =====================================================
-# RADPROC CORE - Procesamiento espectral (agua/suelo)
-# =====================================================
+# Imagen base liviana con Python
 FROM python:3.10-slim
 
+# Carpeta de trabajo
 WORKDIR /app
 
-# Evitar buffering en logs
-ENV PYTHONUNBUFFERED=1
-ENV TZ=America/Argentina/Buenos_Aires
-
-# Copiar procesamiento y dependencias
-COPY procesamiento/ ./procesamiento/
+# Copiamos requerimientos e instalamos dependencias
 COPY docker/core/requirements.txt .
-
-# Instalar dependencias
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copiar entrypoint
-COPY docker/core/entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+# Copiamos el código fuente del core
+COPY procesamiento/ ./procesamiento/
 
-ENTRYPOINT ["/entrypoint.sh"]
+# Exponemos el puerto del servicio API
+EXPOSE 8080
+
+# Comando final: levantar el servidor FastAPI
+CMD ["uvicorn", "procesamiento.app:app", "--host", "0.0.0.0", "--port", "8080"]
+
