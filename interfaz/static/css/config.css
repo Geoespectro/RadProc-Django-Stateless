@@ -1,9 +1,20 @@
 /* ============================================================================
-   config.css — Estilos específicos para configuraciones.html
+   config.css — Estilos específicos para la vista Configuraciones
+   ---------------------------------------------------------------------------
    Asocia: configuraciones.html / config.js
+   Contiene estilos para:
+     - Contenedor principal (.ventana-config)
+     - Tabla de parámetros (spectrum, meas_order, target_list)
+     - Botones inferiores
+     - Modal de edición
+     - Ajustes modo oscuro
 ============================================================================ */
 
-/* === CONTENEDOR PRINCIPAL === */
+
+/* ============================================================================
+   1) CONTENEDOR PRINCIPAL
+============================================================================ */
+
 .ventana-config {
   background: var(--c-card);
   color: var(--c-text);
@@ -15,23 +26,35 @@
   border: 1px solid var(--c-border);
 }
 
-/* === SELECTOR DE TIPO === */
+
+/* ============================================================================
+   2) SELECTOR DE TIPO
+============================================================================ */
+
 #tipo-config {
   transition: all 0.3s ease;
 }
 
-/* === TABLA DE PARÁMETROS === */
+
+/* ============================================================================
+   3) TABLA DE PARÁMETROS
+============================================================================ */
+
+/* Estructura general */
 .ventana-config table {
   margin-top: 20px;
   border-collapse: collapse;
   width: 100%;
 }
+
 .ventana-config table th,
 .ventana-config table td {
   border: 1px solid var(--c-border);
   padding: 10px;
   vertical-align: middle;
 }
+
+/* Campos editables */
 .ventana-config table input[type="text"],
 .ventana-config table input[type="number"] {
   width: 100%;
@@ -42,20 +65,30 @@
   color: var(--c-text);
 }
 
-/* === BOTONES INFERIORES === */
+
+/* ============================================================================
+   4) BOTONES INFERIORES
+============================================================================ */
+
 .botones-config {
   margin-top: 20px;
   display: flex;
   justify-content: flex-end;
   gap: 10px;
 }
+
+/* Estado deshabilitado */
 .botones-config button:disabled {
   background: #f0f0f0;
   color: #999;
   cursor: not-allowed;
 }
 
-/* === RESPONSIVE === */
+
+/* ============================================================================
+   5) RESPONSIVE — Adaptación móvil
+============================================================================ */
+
 @media (max-width: 768px) {
   .ventana-config {
     padding: 20px;
@@ -69,18 +102,19 @@
   }
 }
 
+
 /* ============================================================================
-   🌙 MODO OSCURO
+   6) 🌙 MODO OSCURO — Ajustes generales
 ============================================================================ */
 
-/* --- Contenedor general --- */
+/* Contenedor principal */
 body.modo-oscuro .ventana-config {
   background: #1a1f24;
   border-color: #2c333a;
   color: #eaf2fa;
 }
 
-/* --- Tabla general --- */
+/* Tabla general */
 body.modo-oscuro .ventana-config table {
   border-color: #3e4a55;
 }
@@ -93,12 +127,12 @@ body.modo-oscuro .ventana-config table th {
   border-bottom: 1px solid #3e4a55;
 }
 
-/* === Nombres de parámetros (columna izquierda) === */
+/* Nombres de parámetros (columna izquierda) */
 body.modo-oscuro .ventana-config table td:first-child {
   font-weight: 700;
 }
 
-/* Descripción debajo del nombre */
+/* Descripciones bajo el nombre */
 body.modo-oscuro .ventana-config table td small,
 body.modo-oscuro .ventana-config table td .form-text,
 body.modo-oscuro .ventana-config table td .text-muted {
@@ -106,15 +140,15 @@ body.modo-oscuro .ventana-config table td .text-muted {
   font-weight: 400;
 }
 
-/* Ejemplos dentro del texto (“spectralon, target, cielo.” / “M1, M2, M3”) */
+/* Ejemplos de texto (resaltado rojo) */
 body.modo-oscuro .ventana-config table td em,
 body.modo-oscuro .ventana-config table td span[style*="color:red"],
 body.modo-oscuro .ventana-config table td span[style*="color:#dc3545"],
 body.modo-oscuro .ventana-config table td span {
-  color: #ff9999 !important; /* rojo suave, visible pero equilibrado */
+  color: #ff9999 !important;
 }
 
-/* Entradas de texto (inputs) */
+/* Campos de texto / numéricos */
 body.modo-oscuro .ventana-config table input[type="text"],
 body.modo-oscuro .ventana-config table input[type="number"] {
   background: #2a3037;
@@ -122,29 +156,31 @@ body.modo-oscuro .ventana-config table input[type="number"] {
   border-color: #3e4a55;
 }
 
-/* Botones “Editar” dentro de la tabla */
+/* Botones inferiores */
 body.modo-oscuro .ventana-config .botones-config button {
   background: #2e343c;
   color: #e6edf3;
   border: 1px solid #46515c;
 }
+
 body.modo-oscuro .ventana-config .botones-config button:hover {
   background: #3a414b;
   color: #ffffff;
 }
 
+
 /* ============================================================================
-   🧩 AJUSTE PRECISO — Forzar color negro en los títulos principales
-   (spectrum, meas_order, target_list)
+   7) 🧩 AJUSTE PRECISO — Títulos principales negros
+   (solo para spectrum, meas_order, target_list)
 ============================================================================ */
 
-/* Asegura que la descripción NO cambie (se mantiene gris) */
+/* Descripciones debajo del título (se mantienen grises) */
 body.modo-oscuro .ventana-config table tbody tr td:first-child small,
 body.modo-oscuro .ventana-config table tbody tr td:first-child .form-text {
   color: #c7d1db !important;
 }
 
-/* Forzar solo el PRIMER ELEMENTO (el título) a negro */
+/* Fuerza el título principal a negro */
 body.modo-oscuro .ventana-config table tbody tr td:first-child > :first-child {
   color: #000000 !important;
   font-weight: 700 !important;
@@ -152,49 +188,59 @@ body.modo-oscuro .ventana-config table tbody tr td:first-child > :first-child {
   -webkit-text-fill-color: #000000 !important;
 }
 
-/* Si Bootstrap le aplicó .text-muted al título, lo anulamos también */
+/* Si el título tiene .text-muted, se anula */
 body.modo-oscuro .ventana-config table tbody tr td:first-child > .text-muted:first-child {
   color: #000000 !important;
 }
 
+
 /* ============================================================================
-   --- Modal de edición (modo oscuro) ---
+   8) MODAL DE EDICIÓN — Modo oscuro
 ============================================================================ */
+
 body.modo-oscuro .modal-content {
   background-color: #151a1f;
   color: #dbe5ef;
   border: 1px solid #2b333b;
 }
+
 body.modo-oscuro .modal-header,
 body.modo-oscuro .modal-footer {
   border-color: #2b333b;
   background: transparent;
 }
+
 body.modo-oscuro .modal-title {
   color: #eaf2fa !important;
   font-weight: 600;
 }
+
 body.modo-oscuro .btn-close {
   filter: invert(1) brightness(1.6);
   opacity: 0.9;
 }
+
 body.modo-oscuro #editor-help.alert.alert-secondary {
   background: rgba(255, 255, 255, 0.06);
   color: #e1e7ef;
   border-color: #3a444e;
 }
+
 body.modo-oscuro #editorTextarea.form-control {
   background: #0f1418;
   color: #e8eef5;
   border-color: #3a444e;
   caret-color: #ffffff;
 }
+
 body.modo-oscuro #editorFeedback {
   color: #b8c4d0;
 }
+
 body.modo-oscuro .modal-footer .btn-primary {
   box-shadow: none;
 }
+
 body.modo-oscuro .modal-footer .btn-secondary {
   background: #384149;
   border-color: #384149;

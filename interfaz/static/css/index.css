@@ -1,22 +1,38 @@
 /* ============================================================================
-   index.css — Estilos específicos de la página de Inicio
-   Asocia: index.html / index.js
+   index.css — Estilos específicos de la página de Inicio (index.html)
    ---------------------------------------------------------------------------
+   Asocia: index.html / index.js
    Contiene estilos para:
-     - Formulario ZIP y Spectralon
+     - Formulario ZIP y bloque Spectralon
      - Log de procesamiento
      - Modal "Próxima función"
+     - Botón “Procesar y descargar” (estados)
      - Adaptaciones modo oscuro y responsive
 ============================================================================ */
 
-/* === FORMULARIO ZIP === */
+
+/* ============================================================================
+   1) FORMULARIO PRINCIPAL (ZIP)
+============================================================================ */
+
+/* Input group del ZIP */
 #form-datos .input-group { flex-wrap: nowrap; }
 
-/* Nombre del ZIP cargado */
-#nombre-carpeta-datos { font-size: .9rem; color: #555; }
-body.modo-oscuro #nombre-carpeta-datos { color: var(--c-muted); }
+/* Mensaje de nombre del ZIP cargado */
+#nombre-carpeta-datos {
+  font-size: .9rem;
+  color: #555;
+}
+body.modo-oscuro #nombre-carpeta-datos {
+  color: var(--c-muted);
+}
 
-/* === BLOQUE SPECTRALON === */
+
+/* ============================================================================
+   2) BLOQUE SPECTRALON
+============================================================================ */
+
+/* Contenedor general */
 .row.align-items-center.mb-4 {
   background: #f3faff;
   border-left: 4px solid #00aaff;
@@ -28,15 +44,22 @@ body.modo-oscuro .row.align-items-center.mb-4 {
   border-left-color: #3da5ff;
 }
 
-/* Botón “Cambiar…” y texto */
+/* Texto y botón */
 .row.align-items-center.mb-4 span {
   font-weight: bold;
   text-align: center;
   display: block;
 }
-.row.align-items-center.mb-4 button { white-space: nowrap; }
+.row.align-items-center.mb-4 button {
+  white-space: nowrap;
+}
 
-/* === LOG DE ACCIONES === */
+
+/* ============================================================================
+   3) LOG DE PROCESAMIENTO
+============================================================================ */
+
+/* Área del log */
 textarea.form-control {
   background: #f8fcff;
   font-family: ui-monospace, Menlo, Consolas, monospace;
@@ -52,7 +75,11 @@ body.modo-oscuro textarea.form-control {
   border-color: var(--c-border);
 }
 
-/* === LOGO === */
+
+/* ============================================================================
+   4) LOGO INSTITUCIONAL
+============================================================================ */
+
 .logo-app-wrapper {
   position: absolute;
   top: 100px;
@@ -60,41 +87,59 @@ body.modo-oscuro textarea.form-control {
   transform: translateX(-50%);
   z-index: 1;
 }
+
 .logo-app {
   max-width: 160px;
   opacity: .9;
   transition: transform .3s ease;
-  filter: drop-shadow(0 0 2px rgba(0,0,0,.15));
+  filter: drop-shadow(0 0 2px rgba(0, 0, 0, .15));
 }
-.logo-app:hover { transform: scale(1.05); }
+.logo-app:hover {
+  transform: scale(1.05);
+}
 
-/* === MODAL “PRÓXIMA FUNCIÓN” === */
+
+/* ============================================================================
+   5) MODAL “PRÓXIMA FUNCIÓN”
+============================================================================ */
+
+/* Fondo del modal */
 .modal-prox {
   position: fixed;
   top: 0; left: 0;
   width: 100%; height: 100%;
-  background: rgba(0,0,0,0.55);
+  background: rgba(0, 0, 0, 0.55);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 9999;
   animation: fadeIn 0.3s ease-in-out;
 }
+
+/* Contenedor del contenido */
 .modal-prox-content {
   background: #ffffff;
   border-radius: 12px;
   padding: 24px 36px;
   text-align: center;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
   color: #23272e;
   max-width: 400px;
 }
-.modal-prox-content h5 { color: #007bff; margin-bottom: 10px; }
 
+/* Título del modal */
+.modal-prox-content h5 {
+  color: #007bff;
+  margin-bottom: 10px;
+}
+
+/* Animación de aparición */
 @keyframes fadeIn {
   from { opacity: 0; transform: scale(0.9); }
-  to { opacity: 1; transform: scale(1); }
+  to   { opacity: 1; transform: scale(1); }
 }
+
+/* Modo oscuro */
 @media (prefers-color-scheme: dark) {
   .modal-prox-content {
     background: #1c2328;
@@ -103,20 +148,40 @@ body.modo-oscuro textarea.form-control {
   }
 }
 
-/* === BOTÓN PRÓXIMA FUNCIÓN === */
+
+/* ============================================================================
+   6) BOTÓN “PRÓXIMA FUNCIÓN”
+============================================================================ */
+
 #btn-proxima-funcion {
   transition: background-color 0.3s ease, transform 0.2s ease;
 }
-#btn-proxima-funcion:hover { transform: scale(1.04); }
-
-/* === RESPONSIVE === */
-@media (max-width: 768px) {
-  .row.align-items-center.mb-4 { flex-direction: column; text-align: center; }
-  .d-flex.flex-md-row { flex-direction: column !important; }
-  .d-flex.flex-md-row button { width: 100%; }
+#btn-proxima-funcion:hover {
+  transform: scale(1.04);
 }
 
-/* === MODO OSCURO — Correcciones visuales en formulario de carga y Spectralon === */
+
+/* ============================================================================
+   7) RESPONSIVE — Adaptación a pantallas pequeñas
+============================================================================ */
+
+@media (max-width: 768px) {
+  .row.align-items-center.mb-4 {
+    flex-direction: column;
+    text-align: center;
+  }
+  .d-flex.flex-md-row {
+    flex-direction: column !important;
+  }
+  .d-flex.flex-md-row button {
+    width: 100%;
+  }
+}
+
+
+/* ============================================================================
+   8) MODO OSCURO — Correcciones visuales
+============================================================================ */
 
 /* Texto de “ningún archivo seleccionado” o “archivo cargado” */
 body.modo-oscuro #nombre-carpeta-datos {
@@ -124,39 +189,30 @@ body.modo-oscuro #nombre-carpeta-datos {
   font-weight: 500;
 }
 
-/* Bloque del Spectralon seleccionado */
+/* Bloque Spectralon en modo oscuro */
 body.modo-oscuro .row.align-items-center.mb-4 {
   background: #1d2730 !important;
   border-left-color: #4db2ff;
   color: #eaf2fa;
 }
 
-/* Texto dentro del bloque (ej: “SRT99-120.TXT”) */
+/* Texto dentro del bloque */
 body.modo-oscuro .row.align-items-center.mb-4 span {
   color: #eaf2fa !important;
 }
 
-/* Texto aclaratorio: “si adjuntas un Spectralon…” */
+/* Texto aclaratorio */
 body.modo-oscuro .text-secondary,
 body.modo-oscuro small {
   color: #c9d7e3 !important;
   font-weight: 400;
 }
 
-/* === Corrección hover botón “Seleccionar archivo” en modo oscuro === */
-body.modo-oscuro input[type="file"]::-webkit-file-upload-button:hover,
-body.modo-oscuro input[type="file"]::file-selector-button:hover {
-  background: #3a424c !important; /* tono más oscuro */
-  color: #ffffff !important;       /* texto blanco legible */
-  border-color: var(--c-border);
-}
 
 /* ============================================================================
-   🔧 FIX DEFINITIVO: botón "Seleccionar archivo" en modo oscuro
-   Evita que se aclare el fondo al pasar el mouse (hover) y mantiene texto visible
+   9) FIX — Hover del botón “Seleccionar archivo” (modo oscuro)
 ============================================================================ */
 
-/* Estado normal */
 body.modo-oscuro input[type="file"]::-webkit-file-upload-button,
 body.modo-oscuro input[type="file"]::file-selector-button {
   background: #2b3138 !important;
@@ -165,15 +221,13 @@ body.modo-oscuro input[type="file"]::file-selector-button {
   transition: background-color 0.25s ease, color 0.25s ease;
 }
 
-/* Hover */
 body.modo-oscuro input[type="file"]::-webkit-file-upload-button:hover,
 body.modo-oscuro input[type="file"]::file-selector-button:hover {
-  background: #3b424c !important; /* ligeramente más claro, pero sin perder contraste */
+  background: #3b424c !important;
   color: #ffffff !important;
   border-color: #4b5661;
 }
 
-/* Active (clic presionado) */
 body.modo-oscuro input[type="file"]::-webkit-file-upload-button:active,
 body.modo-oscuro input[type="file"]::file-selector-button:active {
   background: #1f2429 !important;
@@ -181,9 +235,9 @@ body.modo-oscuro input[type="file"]::file-selector-button:active {
   border-color: #4b5661;
 }
 
+
 /* ============================================================================
-   🎨 Mejora visual — Bloque Spectralon de Referencia
-   Agrega jerarquía con fondo y borde sutil (modo claro y oscuro)
+   10) BLOQUE SPECTRALON DE REFERENCIA — Mejora visual
 ============================================================================ */
 
 /* --- Modo claro --- */
@@ -203,51 +257,48 @@ body.modo-oscuro .spectralon-block {
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
 }
 
-
-/* ============================================================================
-   🧱 Espaciado superior del bloque Spectralon (al eliminar la línea <hr>)
-============================================================================ */
+/* Separación superior */
 .spectralon-block {
-  margin-top: 1.5rem; /* ~24px de separación superior */
+  margin-top: 1.5rem;
 }
 
 
+/* ============================================================================
+   11) BOTÓN “PROCESAR Y DESCARGAR” — Estados
+============================================================================ */
 
-/* Estado deshabilitado */
+/* Deshabilitado (modo claro general) */
 #btn-procesar:disabled {
-  background-color: #a9c5ff !important; /* azul pálido */
+  background-color: #a9c5ff !important;
   border-color: #a9c5ff !important;
   color: #e6e6e6 !important;
   cursor: not-allowed;
   opacity: 1;
 }
 
-/* Estado activo */
+/* Activo */
 #btn-procesar {
-  background-color: #007bff; /* azul brillante */
+  background-color: #007bff;
   border-color: #007bff;
   transition: background-color 0.3s ease, box-shadow 0.2s ease;
 }
 
-/* Hover visual más profundo */
+/* Hover */
 #btn-procesar:hover {
-  background-color: #0056d6; /* azul más oscuro */
+  background-color: #0056d6;
   box-shadow: 0 0 10px rgba(0, 91, 230, 0.5);
 }
 
-/* Estado “procesando” */
+/* Estado “Procesando…” */
 #btn-procesar.procesando {
   background-color: #004080 !important;
   border-color: #004080 !important;
   color: #ffffff !important;
   cursor: wait;
-}
-
-
-#btn-procesar.procesando {
   animation: pulsar 1.2s infinite;
 }
 
+/* Animación del estado procesando */
 @keyframes pulsar {
   0% { box-shadow: 0 0 0 0 rgba(0,123,255,0.4); }
   70% { box-shadow: 0 0 0 10px rgba(0,123,255,0); }
@@ -256,26 +307,36 @@ body.modo-oscuro .spectralon-block {
 
 
 /* ============================================================================
-   🌙 Mejora de contraste — Botón "Procesar y descargar" deshabilitado en modo oscuro
+   12) CONTRASTE — Botón “Procesar y descargar” deshabilitado
 ============================================================================ */
+
+/* --- Modo oscuro --- */
 body.modo-oscuro #btn-procesar:disabled {
-  background-color: #2b3b55 !important; /* azul grisáceo medio */
+  background-color: #2b3b55 !important;
   border-color: #32425f !important;
-  color: #b0bed0 !important; /* texto más claro */
-  opacity: 1; /* evita que se vea lavado */
+  color: #b0bed0 !important;
+  opacity: 1;
+  cursor: not-allowed;
+}
+
+/* --- Modo claro --- */
+body.modo-claro #btn-procesar:disabled {
+  background-color: #c7dafd !important;
+  border-color: #b2c8fa !important;
+  color: #6c757d !important;
+  opacity: 1;
   cursor: not-allowed;
 }
 
 
 /* ============================================================================
-   ☀️ Mejora de contraste — Botón "Procesar y descargar" deshabilitado en modo claro
+   13) FIX — Texto del Spectralon por defecto (modo oscuro)
 ============================================================================ */
-body.modo-claro #btn-procesar:disabled {
-  background-color: #c7dafd !important; /* azul intermedio */
-  border-color: #b2c8fa !important;
-  color: #6c757d !important; /* gris medio para el texto */
-  opacity: 1; /* evita que se vea blanqueado */
-  cursor: not-allowed;
-}
 
+body.modo-oscuro .spectralon-block #nombre-spectralon,
+body.modo-oscuro #nombre-spectralon.text-muted {
+  color: #ffffff !important;
+  font-weight: 500 !important;
+  opacity: 1 !important;
+}
 

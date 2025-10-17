@@ -2,25 +2,30 @@
    base.css — Estilos globales comunes de RadProc WEB
    ---------------------------------------------------------------------------
    Define:
-     - Variables de color base (modo claro/oscuro)
-     - Estilos de tipografía, inputs, selectores y botones
-     - Select tematizado por tipo (agua/suelo/spectralon)
-     - Sistema de avisos tipo toast
+     - Variables de color base (modo claro y oscuro)
+     - Tipografía, layout general y fondo
+     - Formularios, inputs, selects y botones
+     - Select tematizado por tipo (Agua / Suelo / Spectralon)
+     - Sistema de avisos (toast)
 ============================================================================ */
 
 
+/* ============================================================================
+   1) VARIABLES GLOBALES — MODO CLARO Y OSCURO
+============================================================================ */
+
 :root {
-  /* Base claro */
+  /* === Paleta base modo claro === */
   --c-bg:        #eaf6fc;
   --c-card:      #f6fbff;
   --c-text:      #002b40;
   --c-muted:     #6b7b87;
   --c-border:    #dce8ef;
 
-  /* Botones/links base (si usás Bootstrap primary) */
+  /* Color base de botones / links (Bootstrap primary) */
   --c-primary:   #0d6efd;
 
-  /* Tintes por TIPO de medición (claro) */
+  /* === Tintes por tipo de medición (modo claro) === */
   --agua-bg:     #ccefff;
   --agua-border: #00aaff;
   --agua-text:   #003344;
@@ -33,12 +38,12 @@
   --spec-border:  #e6b800;
   --spec-text:    #665200;
 
-  /* Avisos */
+  /* === Avisos === */
   --warn-bg: #ffc107;
   --warn-text: #000;
 }
 
-/* Modo oscuro: redefino SÓLO variables. */
+/* --- Modo oscuro: redefino solo variables --- */
 body.modo-oscuro {
   --c-bg:        #121416;
   --c-card:      #1a2026;
@@ -46,23 +51,25 @@ body.modo-oscuro {
   --c-muted:     #a6b3be;
   --c-border:    #2b3440;
 
-  /* Tintes por TIPO (oscuros, legibles) */
-  --agua-bg:     #0f2430;   /* celeste muy oscuro de fondo */
+  /* === Tintes por tipo de medición (modo oscuro) === */
+  --agua-bg:     #0f2430;
   --agua-border: #3da5ff;
   --agua-text:   #a8d8ff;
 
-  --suelo-bg:     #0f2618;   /* verde muy oscuro de fondo */
+  --suelo-bg:     #0f2618;
   --suelo-border: #58d68d;
   --suelo-text:   #b9f6d0;
 
-  --spec-bg:      #2a2412;   /* ámbar muy oscuro de fondo */
+  --spec-bg:      #2a2412;
   --spec-border:  #f1c40f;
   --spec-text:    #fde8a4;
 }
 
-/* ------------------------------------------
-   2) BASE GLOBAL
-   ------------------------------------------ */
+
+/* ============================================================================
+   2) LAYOUT GLOBAL Y ESTRUCTURA BASE
+============================================================================ */
+
 body {
   font-family: "Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif;
   background: var(--c-bg);
@@ -73,21 +80,36 @@ body {
   flex-direction: column;
 }
 
-/* Navbar/Footer (si existen) */
-.navbar, footer { background: transparent; }
-body.modo-oscuro .navbar,
-body.modo-oscuro footer { background: #0f1317 !important; }
+/* Navbar y footer */
+.navbar,
+footer {
+  background: transparent;
+}
 
-/* Tipos, enlaces, utilidades */
+body.modo-oscuro .navbar,
+body.modo-oscuro footer {
+  background: #0f1317 !important;
+}
+
+/* Utilidades comunes */
 a { color: #0b6ce2; }
 body.modo-oscuro a { color: #80cfff; }
+
 .text-center { text-align: center; }
 .text-end { text-align: end; }
 .w-100 { width: 100%; }
 
-/* ------------------------------------------
-   3) FORMULARIOS (inputs, selects, textareas)
-   ------------------------------------------ */
+footer {
+  margin-top: auto;
+  font-size: 0.9rem;
+}
+
+
+/* ============================================================================
+   3) FORMULARIOS, INPUTS Y TEXTAREAS
+============================================================================ */
+
+/* --- Base clara --- */
 .form-control,
 .form-select,
 textarea {
@@ -96,8 +118,11 @@ textarea {
   border-color: #b8c7d3;
 }
 
-::placeholder { color: #8796a3; }
+::placeholder {
+  color: #8796a3;
+}
 
+/* --- Modo oscuro --- */
 body.modo-oscuro .form-control,
 body.modo-oscuro .form-select,
 body.modo-oscuro textarea {
@@ -105,73 +130,104 @@ body.modo-oscuro textarea {
   color: var(--c-text);
   border-color: var(--c-border);
 }
-body.modo-oscuro ::placeholder { color: #9fb0bf; }
 
-/* File input: botón “Seleccionar archivo”
-   (estilo consistente y legible en ambos modos) */
+body.modo-oscuro ::placeholder {
+  color: #9fb0bf;
+}
+
+/* --- Botones deshabilitados --- */
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+
+/* ============================================================================
+   4) INPUT FILE — “Seleccionar archivo”
+   (Diseño coherente en modo claro y oscuro)
+============================================================================ */
+
+/* --- Modo claro --- */
 input[type="file"]::-webkit-file-upload-button,
 input[type="file"]::file-selector-button {
-  padding: .45rem .9rem;
+  padding: 0.45rem 0.9rem;
   border: 1px solid #b8c7d3;
-  border-radius: .375rem;
+  border-radius: 0.375rem;
   background: #f4f7fa;
   color: #0b1f2b;
   cursor: pointer;
-}
-input[type="file"]::-webkit-file-upload-button:hover,
-input[type="file"]::file-selector-button:hover {
-  filter: brightness(.96);
+  transition: background-color 0.2s ease;
 }
 
+input[type="file"]::-webkit-file-upload-button:hover,
+input[type="file"]::file-selector-button:hover {
+  filter: brightness(0.96);
+}
+
+/* --- Modo oscuro --- */
 body.modo-oscuro input[type="file"]::-webkit-file-upload-button,
 body.modo-oscuro input[type="file"]::file-selector-button {
   border-color: var(--c-border);
-  background: #2a2f36;     /* evita “blanco” al hover */
+  background: #2a2f36;
   color: var(--c-text);
 }
+
 body.modo-oscuro input[type="file"]::-webkit-file-upload-button:hover,
 body.modo-oscuro input[type="file"]::file-selector-button:hover {
   background: #343b44;
 }
 
-/* Botones deshabilitados */
-button:disabled { cursor: not-allowed; opacity: .6; }
 
-/* ------------------------------------------
-   4) SELECT “tematizado” por tipo de medición
-   (clases que agrega tu JS/plantilla: .agua, .suelo, .spectralon)
-   Centralizado aquí para evitar duplicados.
-   ------------------------------------------ */
+/* ============================================================================
+   5) SELECT “TEMATIZADO” POR TIPO DE MEDICIÓN
+   (Agua / Suelo / Spectralon)
+============================================================================ */
+
+/* --- Agua --- */
 select.form-select.agua {
   background: var(--agua-bg);
   border-color: var(--agua-border);
   color: var(--agua-text);
 }
-select.form-select.agua option { background: #fff; color: #003344; }
+select.form-select.agua option {
+  background: #fff;
+  color: #003344;
+}
 
+/* --- Suelo --- */
 select.form-select.suelo {
   background: var(--suelo-bg);
   border-color: var(--suelo-border);
   color: var(--suelo-text);
 }
-select.form-select.suelo option { background: #fff; color: #003300; }
+select.form-select.suelo option {
+  background: #fff;
+  color: #003300;
+}
 
+/* --- Spectralon --- */
 select.form-select.spectralon {
   background: var(--spec-bg);
   border-color: var(--spec-border);
   color: var(--spec-text);
 }
-select.form-select.spectralon option { background: #fff; color: #665200; }
+select.form-select.spectralon option {
+  background: #fff;
+  color: #665200;
+}
 
-/* ------------------------------------------
-   5) TOAST / AVISOS FIJOS
-   ------------------------------------------ */
+
+/* ============================================================================
+   6) SISTEMA DE AVISOS / TOASTS
+============================================================================ */
+
 .toast-container-fixed {
   position: fixed;
   top: 20px;
   right: 20px;
   z-index: 9999;
 }
+
 .toast-aviso {
   background: var(--warn-bg);
   color: var(--warn-text);
@@ -179,20 +235,23 @@ select.form-select.spectralon option { background: #fff; color: #665200; }
   border-radius: 4px;
   margin-bottom: 8px;
   font-weight: bold;
-  box-shadow: 0 2px 6px rgba(0,0,0,.2);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
   transition: opacity 1s ease-out;
 }
-.toast-aviso.fade-out { opacity: 0; }
 
-/* Footer tamaño */
-footer { margin-top: auto; font-size: .9rem; }
+.toast-aviso.fade-out {
+  opacity: 0;
+}
 
 
+/* ============================================================================
+   7) MODO OSCURO — Ajustes finos de texto y placeholders
+============================================================================ */
 
-/* === MODO OSCURO — Corrección de textos informativos y placeholders === */
+/* Textos secundarios */
 body.modo-oscuro {
-  --c-muted:     #bfc9d4;      /* texto secundario más claro */
-  --c-border:    #3e4a55;
+  --c-muted:  #bfc9d4;
+  --c-border: #3e4a55;
 }
 
 /* Placeholders */
@@ -208,10 +267,22 @@ body.modo-oscuro .form-text {
   color: #d3dde7 !important;
 }
 
-/* Textos deshabilitados o mensajes “sin archivo” */
+/* Textos deshabilitados o informativos */
 body.modo-oscuro .text-muted,
 body.modo-oscuro .mensaje-info,
 body.modo-oscuro #mensaje-sin-archivo {
   color: #c6d3df !important;
   font-weight: 500;
+}
+
+/* ============================================================================
+   UX MEJORA — Indicador visual de selección interactiva
+   (Convierte la flechita en manito para selects)
+============================================================================ */
+
+/* Modo claro y oscuro */
+select.form-select,
+#tipo-medicion,
+#tipo-config {
+  cursor: pointer !important;
 }

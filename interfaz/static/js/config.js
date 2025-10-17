@@ -2,21 +2,26 @@
 // config.js — Lógica de la vista "Configuraciones"
 // ---------------------------------------------------------------------------
 // Controla:
-//  - Selector de tipo de configuración (agua, suelo, spectralon)
-//  - Bloqueo dinámico y redirección entre vistas
-//  - Edición de listas (meas_order y target_list) mediante modal Bootstrap
-//  - Validación y normalización de datos JSON
+//   - Selector de tipo de configuración (Agua / Suelo / Spectralon)
+//   - Bloqueo dinámico y redirección entre vistas
+//   - Edición de listas (meas_order y target_list) mediante modal Bootstrap
+//   - Validación y normalización de datos JSON
 // ============================================================================
 
 console.log("✅ config.js cargado");
 
 document.addEventListener("DOMContentLoaded", function () {
+
+  /* ==========================================================================
+     1) REFERENCIAS DOM — Elementos principales
+  ========================================================================== */
   const tipoConfig = document.getElementById("tipo-config");
   const formConfig = document.getElementById("form-config");
 
-  // ==========================================================================
-  // 🔧 Helpers UI (control del select principal)
-  // ==========================================================================
+
+  /* ==========================================================================
+     2) HELPERS UI — Control del selector principal
+  ========================================================================== */
 
   /** Guarda el último tipo seleccionado (agua/suelo) */
   function initUltimoTipo() {
@@ -57,30 +62,34 @@ document.addEventListener("DOMContentLoaded", function () {
   bloquearOpuesta();
   actualizarHomeHref();
 
-  // Evento de cambio de tipo
+  // Evento de cambio del tipo de configuración
   if (tipoConfig && !tipoConfig.dataset.bound) {
     tipoConfig.addEventListener("change", () => {
       const selected = (tipoConfig.value || "").toLowerCase();
+
+      // Si el usuario selecciona “Spectralon”, redirigir al editor TXT
       if (selected === "spectralon") {
-        // Redirigir al editor TXT
         const ultimo = tipoConfig.dataset.current || "agua";
         window.location.href = `/editar_spectralon/?tipo=${encodeURIComponent(ultimo)}`;
         return;
       }
+
+      // Actualiza el estado del tipo seleccionado
       tipoConfig.dataset.current = selected;
       actualizarEstiloConfiguracion();
       bloquearOpuesta();
       actualizarHomeHref();
-      // Refresca la vista de configuraciones
+
+      // Refresca la vista de configuraciones según el tipo
       window.location.href = `/configuraciones/?tipo=${encodeURIComponent(selected)}&force_config=1`;
     });
     tipoConfig.dataset.bound = "1";
   }
 
-  // ==========================================================================
-  // 🧩 Modal Bootstrap para editar listas meas_order / target_list
-  // ==========================================================================
 
+  /* ==========================================================================
+     3) MODAL — Editor de listas meas_order / target_list
+  ========================================================================== */
   const modalEl = document.getElementById("editorListaModal");
   const editor = document.getElementById("editorTextarea");
   const helpEl = document.getElementById("editor-help");
@@ -92,12 +101,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
   let currentField = null; // almacena qué campo se está editando
 
+
   /** Convierte texto a array de strings, tolerante a formatos */
   function parseToArrayLoose(text) {
     try {
       const parsed = JSON.parse(text);
       if (Array.isArray(parsed)) return parsed.map(String);
     } catch (_) {}
+
     let t = String(text || "").trim();
     if (t.startsWith("[") && t.endsWith("]")) t = t.slice(1, -1);
     return t
@@ -130,9 +141,10 @@ document.addEventListener("DOMContentLoaded", function () {
     modal.show();
   }
 
-  /** Valida y aplica cambios del modal */
+  /** Valida y aplica los cambios del modal */
   function applyEditor() {
     const arr = parseToArrayLoose(editor.value);
+
     if (!arr.length) {
       feedback.className = "mt-2 small text-danger";
       feedback.textContent = "Ingresá al menos un valor (coma-separado o JSON).";
@@ -153,12 +165,13 @@ document.addEventListener("DOMContentLoaded", function () {
     modal?.hide();
   }
 
-  // Abrir modal desde botones "Editar"
+  // Botones “Editar” abren el modal
   document.addEventListener("click", (e) => {
     const btn = e.target.closest(".btn-edit-list");
     if (btn) openEditor(btn.dataset.target);
   });
 
+  // Botón “Aplicar” del modal
   btnAplicar?.addEventListener("click", applyEditor);
 
   // Atajo: Ctrl/Cmd + Enter aplica cambios
@@ -169,15 +182,16 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
-  // ==========================================================================
-  // 💾 Normalización antes de enviar formulario
-  // ==========================================================================
 
+  /* ==========================================================================
+     4) VALIDACIÓN Y NORMALIZACIÓN — Antes de enviar formulario
+  ========================================================================== */
   if (formConfig && !formConfig.dataset.bound) {
     formConfig.addEventListener("submit", () => {
       ["meas_order", "target_list"].forEach((id) => {
         const el = document.getElementById(id);
         if (!el) return;
+
         try {
           const parsed = JSON.parse(el.value);
           if (Array.isArray(parsed)) {
@@ -185,12 +199,14 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
           }
         } catch (_) {}
+
         el.value = JSON.stringify(parseToArrayLoose(el.value));
       });
     });
     formConfig.dataset.bound = "1";
   }
 });
+
 
 
 

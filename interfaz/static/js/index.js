@@ -2,15 +2,19 @@
 // index.js — Lógica principal de la página "Inicio"
 // ---------------------------------------------------------------------------
 // Controla:
-//  - Selección de tipo de medición (agua/suelo)
-//  - Carga y validación de ZIP
-//  - Integración opcional de archivo Spectralon
-//  - Envío y descarga de resultados (fetch)
-//  - Limpieza del estado local (sesión)
+//   - Selección de tipo de medición (Agua/Suelo)
+//   - Carga y validación del archivo ZIP principal
+//   - Integración opcional de archivo Spectralon
+//   - Procesamiento principal y descarga de resultados (fetch)
+//   - Limpieza de sesión y estado local
+//   - Log visual del procesamiento
 // ============================================================================
 
 document.addEventListener("DOMContentLoaded", function () {
-  // === Referencias DOM ===
+
+  /* ==========================================================================
+     1) REFERENCIAS DOM — Elementos clave en la página
+  ========================================================================== */
   const tipoSelect = document.getElementById("tipo-medicion");
   const hiddenMedicion = document.getElementById("tipo-medicion-hidden");
   const formDatos = document.getElementById("form-datos");
@@ -19,45 +23,37 @@ document.addEventListener("DOMContentLoaded", function () {
   const nombreSpan = document.getElementById("nombre-carpeta-datos");
   const logArea = document.getElementById("log-area");
 
-  // === Spectralon ===
+  // Spectralon
   const btnCambiarSpectralon = document.getElementById("btn-cambiar-spectralon");
   const inputSpectralon = document.getElementById("input-spectralon");
   const nombreSpectralon = document.getElementById("nombre-spectralon");
 
-  // ==========================================================================
-  // 🔧 Helpers UI (funciones pequeñas reutilizables)
-  // ==========================================================================
 
-  /** Muestra/oculta estado de procesamiento visual */
-   /**function setProcesando(isOn) {
-    if (!btnProcesar || !formDatos) return;
-    btnProcesar.disabled = isOn;
-    btnProcesar.textContent = isOn ? "Procesando…" : "Procesar y descargar";
-    formDatos.classList.toggle("opacity-75", isOn);
-  }*/
+  /* ==========================================================================
+     2) HELPERS UI — Funciones pequeñas reutilizables
+  ========================================================================== */
 
-    /** Muestra/oculta estado de procesamiento visual con spinner */
+  /** Muestra/oculta el estado de procesamiento con spinner */
   function setProcesando(isOn) {
-  if (!btnProcesar || !formDatos) return;
+    if (!btnProcesar || !formDatos) return;
 
-  if (isOn) {
-    btnProcesar.disabled = true;
-    btnProcesar.classList.add("procesando");
-    btnProcesar.innerHTML = `
-      <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-      Procesando…
-    `;
-    formDatos.classList.add("opacity-75");
-  } else {
-    btnProcesar.disabled = false;
-    btnProcesar.classList.remove("procesando");
-    btnProcesar.innerHTML = "Procesar y descargar";
-    formDatos.classList.remove("opacity-75");
+    if (isOn) {
+      btnProcesar.disabled = true;
+      btnProcesar.classList.add("procesando");
+      btnProcesar.innerHTML = `
+        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+        Procesando…
+      `;
+      formDatos.classList.add("opacity-75");
+    } else {
+      btnProcesar.disabled = false;
+      btnProcesar.classList.remove("procesando");
+      btnProcesar.innerHTML = "Procesar y descargar";
+      formDatos.classList.remove("opacity-75");
+    }
   }
-}
 
-
-  /** Actualiza mensaje del nombre del archivo ZIP */
+  /** Actualiza el mensaje debajo del input ZIP */
   function setNombreArchivoOk(nombre) {
     if (!nombreSpan) return;
     nombreSpan.innerHTML = nombre
@@ -70,14 +66,14 @@ document.addEventListener("DOMContentLoaded", function () {
     if (nombreSpan) nombreSpan.innerHTML = `<span class="text-warning">⚠️ ${msg}</span>`;
   }
 
-  /** Habilita la carga solo si hay tipo seleccionado */
+  /** Habilita la carga y procesamiento solo si hay tipo seleccionado */
   function habilitarCargaSiHayTipo() {
     const hayTipo = !!(tipoSelect && tipoSelect.value);
     inputArchivo && (inputArchivo.disabled = !hayTipo);
     btnProcesar && (btnProcesar.disabled = !hayTipo);
   }
 
-  /** Aplica color de fondo al select según tipo */
+  /** Aplica color al select según el tipo elegido (Agua/Suelo) */
   function aplicarColorSelect() {
     if (!tipoSelect) return;
     tipoSelect.classList.remove("agua", "suelo");
@@ -85,16 +81,17 @@ document.addEventListener("DOMContentLoaded", function () {
     if (v === "agua" || v === "suelo") tipoSelect.classList.add(v);
   }
 
-  // ==========================================================================
-  // 🔄 Estado inicial
-  // ==========================================================================
+
+  /* ==========================================================================
+     3) ESTADO INICIAL — Carga inicial de valores y avisos
+  ========================================================================== */
 
   if (hiddenMedicion && tipoSelect) hiddenMedicion.value = tipoSelect.value || "";
   aplicarColorSelect();
   habilitarCargaSiHayTipo();
 
   if (sessionStorage.getItem("fue_config_con_zip") === "1") {
-    // Volvimos desde Configuraciones con ZIP previo
+    // Si volvimos desde Configuraciones
     sessionStorage.removeItem("fue_config_con_zip");
     sessionStorage.removeItem("archivo_seleccionado");
     sessionStorage.removeItem("zip_name");
@@ -105,9 +102,10 @@ document.addEventListener("DOMContentLoaded", function () {
     setNombreArchivoOk("");
   }
 
-  // ==========================================================================
-  // 🧭 Select tipo de medición
-  // ==========================================================================
+
+  /* ==========================================================================
+     4) SELECTOR — Tipo de medición (Agua / Suelo)
+  ========================================================================== */
 
   if (tipoSelect && !tipoSelect.dataset.bound) {
     tipoSelect.addEventListener("change", function () {
@@ -124,11 +122,13 @@ document.addEventListener("DOMContentLoaded", function () {
     tipoSelect.dataset.bound = "1";
   }
 
-  // ==========================================================================
-  // 📁 Carga del ZIP principal
-  // ==========================================================================
+
+  /* ==========================================================================
+     5) CARGA DEL ZIP PRINCIPAL
+  ========================================================================== */
 
   if (inputArchivo && !inputArchivo.dataset.bound) {
+    // Previene apertura del diálogo si no hay tipo seleccionado
     inputArchivo.addEventListener("click", (e) => {
       const hayTipo = !!(tipoSelect && tipoSelect.value);
       if (!hayTipo) {
@@ -139,6 +139,7 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     });
 
+    // Manejo del cambio de archivo
     inputArchivo.addEventListener("change", () => {
       const archivo = inputArchivo.files?.[0];
       if (archivo) {
@@ -155,10 +156,12 @@ document.addEventListener("DOMContentLoaded", function () {
     inputArchivo.dataset.bound = "1";
   }
 
-  // ==========================================================================
-  // ⚪ Spectralon — carga temporal por ejecución
-  // ==========================================================================
 
+  /* ==========================================================================
+     6) SPECTRALON — Carga temporal para ejecución actual
+  ========================================================================== */
+
+  // Botón “Cambiar…”
   if (btnCambiarSpectralon && !btnCambiarSpectralon.dataset.bound) {
     btnCambiarSpectralon.addEventListener("click", () => {
       inputSpectralon.value = "";
@@ -167,6 +170,7 @@ document.addEventListener("DOMContentLoaded", function () {
     btnCambiarSpectralon.dataset.bound = "1";
   }
 
+  // Cambio de archivo Spectralon
   if (inputSpectralon && !inputSpectralon.dataset.bound) {
     inputSpectralon.addEventListener("change", () => {
       const f = inputSpectralon.files?.[0];
@@ -182,69 +186,10 @@ document.addEventListener("DOMContentLoaded", function () {
     inputSpectralon.dataset.bound = "1";
   }
 
-  // ==========================================================================
-  // 🚀 Procesamiento principal (submit + descarga)
-  // ==========================================================================
 
-  /*if (formDatos && !formDatos.dataset.bound) {
-    formDatos.addEventListener("submit", async function (ev) {
-      ev.preventDefault();
-
-      const hayTipo = !!tipoSelect.value;
-      const tieneArchivo = inputArchivo?.files?.length > 0;
-
-      if (!hayTipo) {
-        mostrarToast?.("⚠️ Selecciona un tipo de medición antes de procesar.") ??
-          alert("⚠️ Selecciona un tipo de medición antes de procesar.");
-        return;
-      }
-
-      if (!tieneArchivo) {
-        mostrarToast?.("⚠️ Debes seleccionar un archivo ZIP antes de procesar.") ??
-          alert("⚠️ Debes seleccionar un archivo ZIP antes de procesar.");
-        setNombreArchivoRequerido("Debes seleccionar un archivo ZIP.");
-        return;
-      }
-
-      const fd = new FormData(formDatos);
-      setProcesando(true);
-      appendLog("⏳ Iniciando procesamiento…");
-
-      try {
-        const resp = await fetch(formDatos.action, { method: "POST", body: fd });
-        if (!resp.ok) {
-          const txt = await resp.text().catch(() => "");
-          appendLog(`❌ Error del servidor (${resp.status}). ${txt || ""}`.trim());
-          return;
-        }
-
-        const blob = await resp.blob();
-        const dispo = resp.headers.get("Content-Disposition") || "";
-        const filename = dispo.match(/filename="([^"]+)"/i)?.[1] || "resultados.zip";
-
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        URL.revokeObjectURL(url);
-
-        appendLog("✅ Procesamiento completado. Descarga iniciada.");
-        playDoneSound?.();
-      } catch (err) {
-        appendLog(`❌ Error de red o del cliente: ${err}`);
-      } finally {
-        setProcesando(false);
-      }
-    });
-    formDatos.dataset.bound = "1";
-  }*/
-
-  // ==========================================================================
-  // 🚀 Procesamiento principal (submit + descarga)
-  // ==========================================================================
+  /* ==========================================================================
+     7) PROCESAMIENTO PRINCIPAL — Envío y descarga del resultado
+  ========================================================================== */
 
   if (formDatos && !formDatos.dataset.bound) {
     formDatos.addEventListener("submit", async function (ev) {
@@ -282,8 +227,8 @@ document.addEventListener("DOMContentLoaded", function () {
         const dispo = resp.headers.get("Content-Disposition") || "";
         const filename = dispo.match(/filename="([^"]+)"/i)?.[1] || "resultados.zip";
 
-        // === ⚠️ Validación del resultado (detección de ZIP anómalo / solo metadata) ===
-        const smallZip = blob.size > 0 && blob.size < 10 * 1024; // ~10 KB
+        // Validación de ZIP anómalo (solo metadata)
+        const smallZip = blob.size > 0 && blob.size < 10 * 1024;
         if (smallZip && typeof mostrarModalAdvertencia === "function") {
           appendLog("⚠️ El ZIP descargado parece contener solo metadata o resultados parciales.");
           mostrarModalAdvertencia(
@@ -295,7 +240,7 @@ document.addEventListener("DOMContentLoaded", function () {
           );
         }
 
-        // === Descarga normal del archivo ZIP ===
+        // Descarga del archivo resultante
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
@@ -317,9 +262,9 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
 
-  // ==========================================================================
-  // 🧩 Próxima función (placeholder de desarrollo)
-  // ==========================================================================
+  /* ==========================================================================
+     8) PRÓXIMA FUNCIÓN — Placeholder de desarrollo
+  ========================================================================== */
 
   const btnProx = document.getElementById("btn-proxima-funcion");
   if (btnProx && !btnProx.dataset.bound) {
@@ -338,9 +283,10 @@ document.addEventListener("DOMContentLoaded", function () {
     btnProx.dataset.bound = "1";
   }
 
-  // ==========================================================================
-  // 🧹 Limpiar sesión (estado cliente)
-  // ==========================================================================
+
+  /* ==========================================================================
+     9) LIMPIEZA DE SESIÓN — Restablecimiento del estado cliente
+  ========================================================================== */
 
   const formLimpiar = document.getElementById("form-limpiar") || document.querySelector('form[action$="limpiar_sesion/"]');
   if (formLimpiar && !formLimpiar.dataset.bound) {
@@ -364,9 +310,10 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 });
 
-// ============================================================================
-// 📋 Helpers globales del log
-// ============================================================================
+
+/* ==========================================================================
+   10) HELPERS GLOBALES DEL LOG
+========================================================================== */
 (function () {
   const getLogEl = () => document.getElementById("log-area");
 
@@ -401,6 +348,7 @@ document.addEventListener("DOMContentLoaded", function () {
   window.normalizeLogNewlines = normalizeLogNewlines;
   document.addEventListener("DOMContentLoaded", normalizeLogNewlines);
 })();
+
 
 
 
