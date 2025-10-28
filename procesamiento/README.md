@@ -21,7 +21,9 @@ El Core de RadProc fue diseñado para:
 procesamiento/
 ├── app.py                   ← Servidor FastAPI (punto de entrada del contenedor)
 ├── service.py               ← Orquestador principal del procesamiento
-├── base.py                  ← Clases y lógica compartida
+├── base.py                  ← Contrato base para todos los procesadores
+├── validators/              ← Validadores de configuración
+│   └── config_validator.py  ← Valida coherencia entre datos y parámetros
 ├── processors/              ← Procesadores especializados
 │   ├── agua.py
 │   └── suelo.py
@@ -33,7 +35,7 @@ procesamiento/
 │   ├── suelo.json
 │   └── Spectralon/SRT-99-120.txt
 └── tests/                   ← Pruebas unitarias
-````
+```
 
 ---
 
@@ -90,6 +92,11 @@ Coordina el flujo de procesamiento:
 2. Detecta tipo de medición (`agua` o `suelo`).
 3. Ejecuta el procesador correspondiente.
 4. Genera los resultados y los empaqueta nuevamente en un `.zip`.
+
+### `validators/config_validator.py`
+
+Verifica la coherencia entre el conjunto de datos cargado y la configuración seleccionada.
+Si detecta inconsistencias, bloquea la ejecución y devuelve un error controlado (HTTP 422) con detalles técnicos.
 
 ---
 

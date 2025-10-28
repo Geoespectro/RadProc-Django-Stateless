@@ -1,16 +1,23 @@
-// ============================================================================
-// validacionResultado.js — Modal de advertencia ante resultados anómalos
-// ---------------------------------------------------------------------------
-// Controla:
-//   - Creación y estilo dinámico de un modal sin dependencias externas
-//   - Mensajes de advertencia cuando la configuración y el set de datos
-//     no coinciden (ZIP solo contiene metadata)
-//   - Modo “Ver detalles técnicos” con explicación guiada para el usuario
-//   - Funciones globales: mostrarModalAdvertencia() y verificarYMostrarAviso()
-// ============================================================================
+// =============================================================================
+// interfaz/static/js/validacionResultado.js
+// -----------------------------------------------------------------------------
+// Módulo de control del modal de advertencia ante configuraciones inválidas
+// o resultados anómalos en el procesamiento.
+// 
+// Estructura general:
+//   1) Creación dinámica del DOM y estilos del modal
+//   2) Renderizado de vistas (home y detalles técnicos)
+//   3) API pública: mostrarModalAdvertencia(), manejarResultadoValidacion()
+// =============================================================================
 
 (function () {
-  /* ---------------------- util: crear DOM y estilos una vez ---------------------- */
+
+  // ===========================================================================
+  // 1️⃣ CREACIÓN DEL MODAL Y ESTILOS
+  // ---------------------------------------------------------------------------
+  // Genera dinámicamente el DOM y el bloque de estilos del modal.
+  // Se asegura de que solo exista una instancia activa.
+  // ===========================================================================
   function ensureModalDOM() {
     if (document.getElementById('rp-modal-overlay')) return;
 
@@ -57,62 +64,65 @@
     `;
     document.body.appendChild(overlay);
 
-    // Cierre por click en overlay o en la X
+    // Cierre por clic en overlay o botón de cierre
     const close = () => overlay.style.display = 'none';
     overlay.addEventListener('click', (e) => { if (e.target.id === 'rp-modal-overlay') close(); });
     overlay.querySelector('.rp-close').addEventListener('click', close);
   }
 
-  /* ---------------------- renders y binding de botones ---------------------- */
+
+  // ===========================================================================
+  // 2️⃣ RENDERIZADO DE CONTENIDO DEL MODAL
+  // ---------------------------------------------------------------------------
+  // Incluye dos modos:
+  //   - Home: mensaje principal de advertencia.
+  //   - Detalles técnicos: guía educativa para revisar configuración.
+  // ===========================================================================
   function renderDetalles() {
-  const overlay = document.getElementById('rp-modal-overlay');
-  const titleEl = overlay.querySelector('#rp-modal-title');
-  const bodyEl  = overlay.querySelector('.rp-body');
-  const footerEl = overlay.querySelector('footer');
+    const overlay = document.getElementById('rp-modal-overlay');
+    const titleEl = overlay.querySelector('#rp-modal-title');
+    const bodyEl  = overlay.querySelector('.rp-body');
+    const footerEl = overlay.querySelector('footer');
 
-  titleEl.textContent = "Detalles técnicos de la configuración";
-  bodyEl.innerHTML = `
-    <div id="detalle-configuracion" class="rp-detalle">
-      <h4>Cómo revisar tu configuración</h4>
-      <p>
-        Este mensaje aparece cuando la <b>configuración seleccionada</b> no coincide con la
-        <b>estructura real del conjunto de datos</b> que subiste.
-        El procesamiento se completó correctamente, pero las mediciones no pudieron
-        agruparse de forma coherente, por lo que el paquete generado solo contiene
-        información general (<code>metadata.json</code>).
-      </p>
+    titleEl.textContent = "Detalles técnicos de la configuración";
+    bodyEl.innerHTML = `
+      <div id="detalle-configuracion" class="rp-detalle">
+        <h4>Cómo revisar tu configuración</h4>
+        <p>
+          Este mensaje aparece cuando la <b>configuración seleccionada</b> no coincide con la
+          <b>estructura real del conjunto de datos</b> que subiste.
+          El procesamiento se completó correctamente, pero las mediciones no pudieron
+          agruparse de forma coherente, por lo que el paquete generado solo contiene
+          información general (<code>metadata.json</code>).
+        </p>
 
-      <h5>1️⃣ Verifica el valor de <code>spectrum</code></h5>
-      <p>Indica cuántos espectros individuales componen una medición completa.</p>
-      <p><b>Ejemplo:</b></p>
-      <pre><code>spectrum = 10
+        <h5>1️⃣ Verifica el valor de <code>spectrum</code></h5>
+        <p>Indica cuántos espectros individuales componen una medición completa.</p>
+        <pre><code>spectrum = 10
 meas_order = ["spectralon", "target"]</code></pre>
 
-      <h5>2️⃣ Revisa el orden de medición (<code>meas_order</code>)</h5>
-      <p>Define si se midió primero el <b>Spectralon</b> o el <b>Target</b>.
-      Un orden incorrecto puede alterar la interpretación de los resultados.</p>
+        <h5>2️⃣ Revisa el orden de medición (<code>meas_order</code>)</h5>
+        <p>Define si se midió primero el <b>Spectralon</b> o el <b>Target</b>.
+        Un orden incorrecto puede alterar la interpretación de los resultados.</p>
 
-      <h5>3️⃣ Comprueba la lista de objetivos (<code>target_list</code>)</h5>
-      <p>Determina los nombres asignados a cada medición y su correspondencia
-      dentro de los archivos cargados. Verifica que coincidan con los datos de campo.</p>
+        <h5>3️⃣ Comprueba la lista de objetivos (<code>target_list</code>)</h5>
+        <p>Determina los nombres asignados a cada medición y su correspondencia
+        dentro de los archivos cargados. Verifica que coincidan con los datos de campo.</p>
 
-      <h5>✅ Consejo final</h5>
-      <p>
-        Antes de volver a procesar, asegurate de que los parámetros utilizados correspondan
-        al instrumento, protocolo de medición y condiciones de campaña.
-        Si tenés dudas, consultá el <b>manual de usuario</b> o las especificaciones técnicas
-        para confirmar que todas las mediciones pertenecen a un mismo conjunto
-        o campaña homogénea.
-      </p>
-    </div>
-  `;
+        <h5>✅ Consejo final</h5>
+        <p>
+          Antes de volver a procesar, asegurate de que los parámetros utilizados correspondan
+          al instrumento, protocolo de medición y condiciones de campaña.
+          Si tenés dudas, consultá el <b>manual de usuario</b> o las especificaciones técnicas.
+        </p>
+      </div>
+    `;
 
-  // Footer: solo "Cerrar"
-  footerEl.innerHTML = `<button class="rp-btn primary" id="rp-cerrar-detalle">Cerrar</button>`;
-  footerEl.querySelector('#rp-cerrar-detalle').addEventListener('click', () => {
-    overlay.style.display = 'none';
-  });
-}
+    footerEl.innerHTML = `<button class="rp-btn primary" id="rp-cerrar-detalle">Cerrar</button>`;
+    footerEl.querySelector('#rp-cerrar-detalle').addEventListener('click', () => {
+      overlay.style.display = 'none';
+    });
+  }
 
 
   function renderHome(titulo, htmlMsg) {
@@ -124,13 +134,13 @@ meas_order = ["spectralon", "target"]</code></pre>
     titleEl.textContent = titulo || 'Aviso';
     bodyEl.innerHTML = `<p>${htmlMsg || 'Ocurrió una condición a revisar.'}</p>`;
 
-    // Footer: “Ver detalles técnicos” + “Entendido”
+    // Footer con acciones disponibles
     footerEl.innerHTML = `
       <button class="rp-btn" id="rp-modal-detalles">Ver detalles técnicos</button>
       <button class="rp-btn primary" id="rp-modal-aceptar">Entendido</button>
     `;
 
-    // Bind de los botones (siempre sobre el DOM recién pintado)
+    // Bind de botones (siempre sobre el DOM recién pintado)
     footerEl.querySelector('#rp-modal-aceptar').addEventListener('click', () => {
       overlay.style.display = 'none';
     });
@@ -139,7 +149,12 @@ meas_order = ["spectralon", "target"]</code></pre>
     overlay.style.display = 'flex';
   }
 
-  /* ---------------------- API pública ---------------------- */
+
+  // ===========================================================================
+  // 3️⃣ API PÚBLICA DEL MÓDULO
+  // ---------------------------------------------------------------------------
+  // Exposición global de funciones accesibles desde index.js y otros scripts.
+  // ===========================================================================
   function mostrarModalAdvertencia(titulo, htmlMsg) {
     ensureModalDOM();
     renderHome(titulo, htmlMsg);
@@ -156,9 +171,34 @@ meas_order = ["spectralon", "target"]</code></pre>
     }
   }
 
+  function manejarResultadoValidacion({ mensaje }) {
+    try {
+      const limpio = String(mensaje || "").trim();
+      if (!limpio) return;
+      mostrarModalAdvertencia(
+        "Configuración incompatible con los datos",
+        limpio.replace(/\n/g, "<br>")
+      );
+    } catch (err) {
+      console.warn("No se pudo mostrar el modal de validación:", err);
+    }
+  }
+
+  // Registrar funciones globales
+  window.manejarResultadoValidacion = manejarResultadoValidacion;
   window.mostrarModalAdvertencia = mostrarModalAdvertencia;
   window.verificarYMostrarAviso = verificarYMostrarAviso;
+
 })();
+
+// =============================================================================
+// FIN DEL MÓDULO
+// -----------------------------------------------------------------------------
+// Este script se ejecuta de forma autónoma y provee las funciones necesarias
+// para mostrar mensajes y guías al usuario cuando la validación detecta
+// inconsistencias entre la configuración y los datos cargados.
+// =============================================================================
+
 
 
 

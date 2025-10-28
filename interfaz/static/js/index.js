@@ -33,7 +33,6 @@ document.addEventListener("DOMContentLoaded", function () {
      2) HELPERS UI — Funciones pequeñas reutilizables
   ========================================================================== */
 
-  /** Muestra/oculta el estado de procesamiento con spinner */
   function setProcesando(isOn) {
     if (!btnProcesar || !formDatos) return;
 
@@ -53,7 +52,6 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  /** Actualiza el mensaje debajo del input ZIP */
   function setNombreArchivoOk(nombre) {
     if (!nombreSpan) return;
     nombreSpan.innerHTML = nombre
@@ -61,19 +59,16 @@ document.addEventListener("DOMContentLoaded", function () {
       : `<span class="text-muted">Ningún archivo seleccionado</span>`;
   }
 
-  /** Muestra aviso de recarga requerida */
   function setNombreArchivoRequerido(msg = "Debes volver a cargar el archivo ZIP antes de procesar.") {
     if (nombreSpan) nombreSpan.innerHTML = `<span class="text-warning">⚠️ ${msg}</span>`;
   }
 
-  /** Habilita la carga y procesamiento solo si hay tipo seleccionado */
   function habilitarCargaSiHayTipo() {
     const hayTipo = !!(tipoSelect && tipoSelect.value);
     inputArchivo && (inputArchivo.disabled = !hayTipo);
     btnProcesar && (btnProcesar.disabled = !hayTipo);
   }
 
-  /** Aplica color al select según el tipo elegido (Agua/Suelo) */
   function aplicarColorSelect() {
     if (!tipoSelect) return;
     tipoSelect.classList.remove("agua", "suelo");
@@ -91,7 +86,6 @@ document.addEventListener("DOMContentLoaded", function () {
   habilitarCargaSiHayTipo();
 
   if (sessionStorage.getItem("fue_config_con_zip") === "1") {
-    // Si volvimos desde Configuraciones
     sessionStorage.removeItem("fue_config_con_zip");
     sessionStorage.removeItem("archivo_seleccionado");
     sessionStorage.removeItem("zip_name");
@@ -128,7 +122,6 @@ document.addEventListener("DOMContentLoaded", function () {
   ========================================================================== */
 
   if (inputArchivo && !inputArchivo.dataset.bound) {
-    // Previene apertura del diálogo si no hay tipo seleccionado
     inputArchivo.addEventListener("click", (e) => {
       const hayTipo = !!(tipoSelect && tipoSelect.value);
       if (!hayTipo) {
@@ -139,7 +132,6 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     });
 
-    // Manejo del cambio de archivo
     inputArchivo.addEventListener("change", () => {
       const archivo = inputArchivo.files?.[0];
       if (archivo) {
@@ -161,7 +153,6 @@ document.addEventListener("DOMContentLoaded", function () {
      6) SPECTRALON — Carga temporal para ejecución actual
   ========================================================================== */
 
-  // Botón “Cambiar…”
   if (btnCambiarSpectralon && !btnCambiarSpectralon.dataset.bound) {
     btnCambiarSpectralon.addEventListener("click", () => {
       inputSpectralon.value = "";
@@ -170,7 +161,6 @@ document.addEventListener("DOMContentLoaded", function () {
     btnCambiarSpectralon.dataset.bound = "1";
   }
 
-  // Cambio de archivo Spectralon
   if (inputSpectralon && !inputSpectralon.dataset.bound) {
     inputSpectralon.addEventListener("change", () => {
       const f = inputSpectralon.files?.[0];
@@ -218,27 +208,40 @@ document.addEventListener("DOMContentLoaded", function () {
       try {
         const resp = await fetch(formDatos.action, { method: "POST", body: fd });
         if (!resp.ok) {
-          const txt = await resp.text().catch(() => "");
-          appendLog(`❌ Error del servidor (${resp.status}). ${txt || ""}`.trim());
-          return;
+        const txt = await resp.text().catch(() => "");
+        const etiqueta =
+          resp.status === 422
+            ? "Solicitud no procesable"
+            : "Error del servidor";
+        appendLog(`❌ ${etiqueta} (${resp.status}). ${txt || ""}`.trim());
+
+        // Si el backend envía mensaje en cabecera (X-Radproc-Message), mostrar modal
+        if (resp.status === 422 && typeof manejarResultadoValidacion === "function") {
+          const mensajeHeader = resp.headers.get("X-Radproc-Message") || txt;
+          if (mensajeHeader) manejarResultadoValidacion({ mensaje: mensajeHeader });
         }
+        return;
+      }
+
 
         const blob = await resp.blob();
         const dispo = resp.headers.get("Content-Disposition") || "";
         const filename = dispo.match(/filename="([^"]+)"/i)?.[1] || "resultados.zip";
 
-        // Validación de ZIP anómalo (solo metadata)
-        const smallZip = blob.size > 0 && blob.size < 10 * 1024;
-        if (smallZip && typeof mostrarModalAdvertencia === "function") {
-          appendLog("⚠️ El ZIP descargado parece contener solo metadata o resultados parciales.");
-          mostrarModalAdvertencia(
-            "Parámetros fuera de rango",
-            "El paquete descargado contiene solo <b>metadata</b> o resultados parciales.<br>" +
-              "Esto suele ocurrir cuando la configuración (por ejemplo, <code>spectrum</code> o <code>meas_order</code>) " +
-              "no coincide con el conjunto de datos subido.<br><br>" +
-              "Revise la configuración y vuelva a intentar el procesamiento."
-          );
+        // =============================================================
+        // 🔧 NUEVO BLOQUE: Manejo de advertencias o errores informativos del core
+        // -------------------------------------------------------------
+        // Este bloque sustituye al anterior de "Validación de ZIP anómalo".
+        // Si el backend envía un mensaje de advertencia o error leve
+        // (por ejemplo, en una cabecera X-Radproc-Message), se muestra el modal informativo.
+        // =============================================================
+        if (typeof manejarResultadoValidacion === "function") {
+          const mensajeHeader = resp.headers.get("X-Radproc-Message");
+          if (mensajeHeader) {
+            manejarResultadoValidacion({ mensaje: mensajeHeader });
+          }
         }
+        // =============================================================
 
         // Descarga del archivo resultante
         const url = URL.createObjectURL(blob);
