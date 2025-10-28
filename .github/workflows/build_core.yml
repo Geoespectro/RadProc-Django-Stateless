@@ -3,16 +3,17 @@ name: 🧱 Build Core Container
 on:
   push:
     branches:
-      - feat/sonido-descarga-zip
-      - feat/interfaz-ui
+      - main
+      - feat/*
   pull_request:
     branches:
-      - feat/sonido-descarga-zip
-      - feat/interfaz-ui
+      - main
+      - feat/*
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - name: 🧩 Checkout repository
         uses: actions/checkout@v4
@@ -24,9 +25,14 @@ jobs:
 
       - name: 🐳 Build Docker image (RadProc Core)
         run: |
-          docker build -f docker/core/Dockerfile -t radproc-core .
+          echo "🔧 Iniciando build del contenedor radproc-core..."
+          docker build --progress=plain --no-cache -f docker/core/Dockerfile -t radproc-core .
+          echo "✅ Build finalizado correctamente."
 
       - name: ✅ Validate build
         run: |
+          echo "🧪 Ejecutando validación del contenedor..."
           docker run --rm radproc-core
+          echo "✅ Contenedor validado correctamente."
+
 
