@@ -18,21 +18,24 @@ jobs:
       - name: 🧩 Checkout repository
         uses: actions/checkout@v4
 
-      - name: 🐍 Set up Python
+      - name: 🐳 Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: 🐍 Set up Python (solo para entorno)
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
 
-      - name: 🧱 Docker syntax validation
+      - name: ⚙️ Light Build Test (solo validación)
         run: |
-          echo "🔍 Verificando sintaxis del Dockerfile del core..."
-          docker buildx bake --print || echo "Validación sintáctica completada."
+          echo "🚧 Iniciando build de validación del contenedor..."
+          docker buildx build \
+            --progress=plain \
+            --load \
+            -f docker/core/Dockerfile \
+            -t radproc-core:light .
+          echo "✅ Build estructural completado correctamente."
 
-      - name: ⚙️ Quick build check (modo liviano)
-        run: |
-          echo "🚧 Ejecución parcial del build para validar estructura base..."
-          docker build --progress=plain --no-cache --target base -f docker/core/Dockerfile -t radproc-core:light .
-          echo "✅ Verificación estructural del contenedor completada."
 
 
 
