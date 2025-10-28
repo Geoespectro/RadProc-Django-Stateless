@@ -31,9 +31,11 @@ jobs:
           echo "🚀 Iniciando build completo del contenedor del Core..."
           docker buildx build \
             --progress=plain \
+            --load \
             -f docker/core/Dockerfile \
             -t radproc-core:latest .
-          echo "✅ Build completo del contenedor del Core finalizado."
+          echo "✅ Build completo del contenedor del Core finalizado y cargado."
+
 
       - name: ✅ Smoke Test (validación básica)
         run: |
