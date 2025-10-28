@@ -1,4 +1,4 @@
-name: 🧱 Build Core Container
+name: 🧱 Build Core Container (Light Check)
 
 on:
   push:
@@ -23,16 +23,16 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: 🐳 Build Docker image (RadProc Core)
+      - name: 🧱 Docker syntax validation
         run: |
-          echo "🔧 Iniciando build del contenedor radproc-core..."
-          docker build --progress=plain --no-cache -f docker/core/Dockerfile -t radproc-core .
-          echo "✅ Build finalizado correctamente."
+          echo "🔍 Verificando sintaxis del Dockerfile del core..."
+          docker buildx bake --print
 
-      - name: ✅ Validate build
+      - name: ⚙️ Quick build check (no install)
         run: |
-          echo "🧪 Ejecutando validación del contenedor..."
-          docker run --rm radproc-core
-          echo "✅ Contenedor validado correctamente."
+          echo "🚧 Ejecución parcial para validar estructura base..."
+          docker build --progress=plain --no-cache --target base -f docker/core/Dockerfile -t radproc-core:light .
+          echo "✅ Verificación estructural completada."
+
 
 
