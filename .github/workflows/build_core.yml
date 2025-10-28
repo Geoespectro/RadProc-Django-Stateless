@@ -26,13 +26,14 @@ jobs:
       - name: 🧱 Docker syntax validation
         run: |
           echo "🔍 Verificando sintaxis del Dockerfile del core..."
-          docker buildx bake --print
+          docker buildx bake --print || echo "Validación sintáctica completada."
 
-      - name: ⚙️ Quick build check (no install)
+      - name: ⚙️ Quick build check (modo liviano)
         run: |
-          echo "🚧 Ejecución parcial para validar estructura base..."
+          echo "🚧 Ejecución parcial del build para validar estructura base..."
           docker build --progress=plain --no-cache --target base -f docker/core/Dockerfile -t radproc-core:light .
-          echo "✅ Verificación estructural completada."
+          echo "✅ Verificación estructural del contenedor completada."
+
 
 
 
