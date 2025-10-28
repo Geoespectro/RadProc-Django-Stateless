@@ -1,4 +1,4 @@
-name: 🧱 Build Core Container (Light Check)
+name: 🧱 Build Core Container (Full Build)
 
 on:
   push:
@@ -21,20 +21,26 @@ jobs:
       - name: 🐳 Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: 🐍 Set up Python (solo para entorno)
+      - name: 🐍 Set up Python (solo entorno auxiliar)
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
 
-      - name: ⚙️ Light Build Test (solo validación)
+      - name: 🧱 Build full Docker image (RadProc Core)
         run: |
-          echo "🚧 Iniciando build de validación del contenedor..."
+          echo "🚀 Iniciando build completo del contenedor del Core..."
           docker buildx build \
             --progress=plain \
-            --load \
             -f docker/core/Dockerfile \
-            -t radproc-core:light .
-          echo "✅ Build estructural completado correctamente."
+            -t radproc-core:latest .
+          echo "✅ Build completo del contenedor del Core finalizado."
+
+      - name: ✅ Smoke Test (validación básica)
+        run: |
+          echo "🔍 Probando ejecución mínima del contenedor..."
+          docker run --rm radproc-core:latest python -c "print('Core OK!')"
+          echo "🟢 Contenedor ejecutado correctamente."
+
 
 
 
